@@ -1,0 +1,11 @@
+node_modules
+dist
+.env
+generated
+.idea
+.vscode
+.claude
+.windsurf
+
+/generated/prisma
+Project_Guideline
