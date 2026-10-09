@@ -1,0 +1,17 @@
+// prisma/schema/enums.prisma
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ActiveStatus {
+  ACTIVE
+  BLOCKED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  PAST_DUE
+}

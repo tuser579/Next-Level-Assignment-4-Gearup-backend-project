@@ -1,0 +1,17 @@
+// prisma/schema/user.prisma
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  name         String
+  password     String
+  profilePhoto String
+  role         Role          @default(USER)
+  status       ActiveStatus  @default(ACTIVE)
+
+  subscription Subscription?
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@map("users")
+}
