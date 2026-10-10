@@ -1,17 +1,43 @@
-// prisma/schema/enums.prisma
 enum Role {
-  USER
+  CUSTOMER
+  PROVIDER
   ADMIN
 }
 
-enum ActiveStatus {
+enum UserStatus {
   ACTIVE
   BLOCKED
 }
 
-enum SubscriptionStatus {
-  ACTIVE
+enum ItemCondition {
+  NEW
+  EXCELLENT
+  GOOD
+  FAIR
+}
+
+enum GearStatus {
+  AVAILABLE
+  MAINTENANCE
+  UNAVAILABLE
+}
+
+enum RentalOrderStatus {
+  PLACED
+  CONFIRMED
+  PAID
+  PICKED_UP
+  RETURNED
   CANCELLED
-  EXPIRED
-  PAST_DUE
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  STRIPE
 }

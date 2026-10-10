@@ -100,7 +100,7 @@ export const globalErrorHandler = (
 ) => {
     const isProduction = config.node_env === "production";
 
-    let statusCode: number = httpStatus.INTERNAL_SERVER_ERROR;
+    let statusCode: number = err.statusCode || httpStatus.INTERNAL_SERVER_ERROR;
     let errorMessage: string = err.message || "Something went wrong";
     let errorName: string = err.name || "InternalServerError";
     let errorDetails: Record<string, unknown> | null = null;

@@ -1,17 +1,24 @@
-// prisma/schema/user.prisma
 model User {
   id           String        @id @default(uuid())
-  email        String        @unique
   name         String
+  email        String        @unique
   password     String
-  profilePhoto String
-  role         Role          @default(USER)
-  status       ActiveStatus  @default(ACTIVE)
+  role         Role          @default(CUSTOMER)
+  status       UserStatus    @default(ACTIVE)
+  phone        String?
+  address      String?
+  profileImage String?
 
-  subscription Subscription?
+  // Relations
+  gearItems    GearItem[]    @relation("ProviderGearItems")
+  rentalOrders RentalOrder[] @relation("CustomerRentalOrders")
+  reviews      Review[]      @relation("CustomerReviews")
+  payments     Payment[]     @relation("CustomerPayments")
 
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
+  @@index([email])
+  @@index([role])
   @@map("users")
 }

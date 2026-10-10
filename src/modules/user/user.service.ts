@@ -4,7 +4,7 @@ import { config } from "../../config";
 import { TCreateUserPayload } from "./user.interface";
 
 const createUser = async (payload: TCreateUserPayload) => {
-    const { name, email, password, profilePhoto } = payload;
+    const { name, email, password, profileImage } = payload;
 
     const hashedPassword = await bcrypt.hash(password, config.bcrypt_salt_rounds);
 
@@ -13,14 +13,14 @@ const createUser = async (payload: TCreateUserPayload) => {
             name,
             email,
             password: hashedPassword,
-            profilePhoto: profilePhoto ?? "",
+            profileImage: profileImage ?? "",
         },
         select: {
             id: true,
             name: true,
             email: true,
             role: true,
-            profilePhoto: true,
+            profileImage: true,
             createdAt: true,
         },
     });

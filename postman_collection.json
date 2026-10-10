@@ -1,0 +1,533 @@
+{
+  "info": {
+    "name": "GearUp Sports & Outdoor Rental API",
+    "_postman_id": "gearup-sports-rental-api-v1",
+    "description": "Comprehensive Postman test collection for the GearUp Sports & Outdoor Equipment Rental Platform backend API covering all 32 endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api", "type": "string" },
+    { "key": "customerToken", "value": "", "type": "string" },
+    { "key": "providerToken", "value": "", "type": "string" },
+    { "key": "adminToken", "value": "", "type": "string" },
+    { "key": "categoryId", "value": "", "type": "string" },
+    { "key": "gearId", "value": "", "type": "string" },
+    { "key": "rentalOrderId", "value": "", "type": "string" },
+    { "key": "paymentId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication & Profile",
+      "item": [
+        {
+          "name": "Register Customer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Explorer\",\n  \"email\": \"jane.explorer@example.com\",\n  \"password\": \"Password123!\",\n  \"role\": \"CUSTOMER\",\n  \"phone\": \"+1-555-908-1122\",\n  \"address\": \"45 Trailhead Way, Aspen, CO\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] }
+          }
+        },
+        {
+          "name": "Register Provider",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Summit Gear Outfitters\",\n  \"email\": \"summit.provider@example.com\",\n  \"password\": \"ProviderPass123!\",\n  \"role\": \"PROVIDER\",\n  \"phone\": \"+1-555-432-8877\",\n  \"address\": \"1200 Alpine Ridge Rd, Boulder, CO\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] }
+          }
+        },
+        {
+          "name": "Login Customer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    pm.environment.set('customerToken', res.data.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jane.explorer@example.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Login Provider",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const res = pm.response.json();",
+                  "    pm.environment.set('providerToken', res.data.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"summit.provider@example.com\",\n  \"password\": \"ProviderPass123!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },in
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/auth/refresh-token", "host": ["{{baseUrl}}"], "path": ["auth", "refresh-token"] }
+          }
+        },
+        {
+          "name": "Get Profile (Me)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+1-555-999-0011\",\n  \"address\": \"77 Backcountry Rd, Denver, CO\",\n  \"profileImage\": \"https://images.unsplash.com/photo-1534528741775-53994a69daeb\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/profile", "host": ["{{baseUrl}}"], "path": ["auth", "profile"] }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"Password123!\",\n  \"newPassword\": \"NewSecurePassword456!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/change-password", "host": ["{{baseUrl}}"], "path": ["auth", "change-password"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. User Administration",
+      "item": [
+        {
+          "name": "Get All Users (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users?role=CUSTOMER&status=ACTIVE&search=jane&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users"],
+              "query": [
+                { "key": "role", "value": "CUSTOMER" },
+                { "key": "status", "value": "ACTIVE" },
+                { "key": "search", "value": "jane" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update User Status (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/admin/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["admin", "users", "{{userId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Sports Categories",
+      "item": [
+        {
+          "name": "Create Category (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const res = pm.response.json();",
+                  "    pm.environment.set('categoryId', res.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Camping & Hiking\",\n  \"slug\": \"camping-hiking\",\n  \"description\": \"Tents, backpacks, trekking poles, and sleeping bags for wilderness expeditions.\",\n  \"iconUrl\": \"https://img.icons8.com/color/96/camping-tent.png\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/categories", "host": ["{{baseUrl}}"], "path": ["categories"] }
+          }
+        },
+        {
+          "name": "Get All Categories (Public)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/categories", "host": ["{{baseUrl}}"], "path": ["categories"] }
+          }
+        },
+        {
+          "name": "Get Category By ID (Public)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/categories/{{categoryId}}", "host": ["{{baseUrl}}"], "path": ["categories", "{{categoryId}}"] }
+          }
+        },
+        {
+          "name": "Update Category (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated: Premium four-season tents, ultra-light backpacks, and trekking equipment.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/categories/{{categoryId}}", "host": ["{{baseUrl}}"], "path": ["categories", "{{categoryId}}"] }
+          }
+        },
+        {
+          "name": "Delete Category (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/categories/{{categoryId}}", "host": ["{{baseUrl}}"], "path": ["categories", "{{categoryId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Gear Inventory & Public Catalog",
+      "item": [
+        {
+          "name": "Create Gear Item (Provider)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const res = pm.response.json();",
+                  "    pm.environment.set('gearId', res.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Black Diamond Carbon Cork Trekking Poles\",\n  \"slug\": \"bd-carbon-cork-poles\",\n  \"description\": \"Premium 100% carbon fiber trekking poles with ergonomic cork grips.\",\n  \"brand\": \"Black Diamond\",\n  \"model\": \"Alpine Carbon Cork\",\n  \"condition\": \"NEW\",\n  \"rentalPricePerDay\": 14.0,\n  \"depositFee\": 35.0,\n  \"totalStock\": 10,\n  \"location\": \"Aspen, CO\",\n  \"images\": [\"https://images.unsplash.com/photo-1478131143081-80f7f84ca84d\"],\n  \"specifications\": { \"weight_grams\": 485, \"material\": \"100% Carbon Fiber\" },\n  \"categoryId\": \"{{categoryId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/provider/gear", "host": ["{{baseUrl}}"], "path": ["provider", "gear"] }
+          }
+        },
+        {
+          "name": "Get Provider My Gear",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{providerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/provider/my-gear", "host": ["{{baseUrl}}"], "path": ["provider", "my-gear"] }
+          }
+        },
+        {
+          "name": "Update Gear Item (Provider)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rentalPricePerDay\": 14.0,\n  \"depositFee\": 35.0,\n  \"totalStock\": 10,\n  \"availableStock\": 10\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/provider/gear/{{gearId}}", "host": ["{{baseUrl}}"], "path": ["provider", "gear", "{{gearId}}"] }
+          }
+        },
+        {
+          "name": "Browse Gear Catalog (Public)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/gear?search=carbon&minPrice=10&maxPrice=50&condition=NEW&page=1&limit=10&sortBy=rentalPricePerDay&sortOrder=asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["gear"],
+              "query": [
+                { "key": "search", "value": "carbon" },
+                { "key": "minPrice", "value": "10" },
+                { "key": "maxPrice", "value": "50" },
+                { "key": "condition", "value": "NEW" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "sortBy", "value": "rentalPricePerDay" },
+                { "key": "sortOrder", "value": "asc" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Gear Details By ID (Public)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/gear/{{gearId}}", "host": ["{{baseUrl}}"], "path": ["gear", "{{gearId}}"] }
+          }
+        },
+        {
+          "name": "Delete Gear Item (Provider)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{providerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/provider/gear/{{gearId}}", "host": ["{{baseUrl}}"], "path": ["provider", "gear", "{{gearId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Rental Orders Lifecycle",
+      "item": [
+        {
+          "name": "Place Rental Order (Customer)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const res = pm.response.json();",
+                  "    pm.environment.set('rentalOrderId', res.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startDate\": \"2026-08-10T10:00:00.000Z\",\n  \"endDate\": \"2026-08-14T18:00:00.000Z\",\n  \"items\": [\n    {\n      \"gearItemId\": \"{{gearId}}\",\n      \"quantity\": 2\n    }\n  ],\n  \"notes\": \"Will pick up equipment directly at Aspen store.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/rentals", "host": ["{{baseUrl}}"], "path": ["rentals"] }
+          }
+        },
+        {
+          "name": "Get Customer Rentals",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/rentals", "host": ["{{baseUrl}}"], "path": ["rentals"] }
+          }
+        },
+        {
+          "name": "Get Rental Order By ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/rentals/{{rentalOrderId}}", "host": ["{{baseUrl}}"], "path": ["rentals", "{{rentalOrderId}}"] }
+          }
+        },
+        {
+          "name": "Provider Incoming Orders",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{providerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/provider/orders", "host": ["{{baseUrl}}"], "path": ["provider", "orders"] }
+          }
+        },
+        {
+          "name": "Provider Update Order Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{providerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"PICKED_UP\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/provider/orders/{{rentalOrderId}}", "host": ["{{baseUrl}}"], "path": ["provider", "orders", "{{rentalOrderId}}"] }
+          }
+        },
+        {
+          "name": "Cancel Rental Order",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/rentals/{{rentalOrderId}}/cancel", "host": ["{{baseUrl}}"], "path": ["rentals", "{{rentalOrderId}}", "cancel"] }
+          }
+        },
+        {
+          "name": "Get All Rentals (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/admin/rentals?status=CONFIRMED&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "rentals"],
+              "query": [
+                { "key": "status", "value": "CONFIRMED" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Payment & Stripe Checkout",
+      "item": [
+        {
+          "name": "Create Stripe Checkout Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rentalOrderId\": \"{{rentalOrderId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/payments/create", "host": ["{{baseUrl}}"], "path": ["payments", "create"] }
+          }
+        },
+        {
+          "name": "Confirm Payment (Webhook)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Stripe-Signature", "value": "t=1723284000,v1=test_signature" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"evt_test_webhook_001\",\n  \"object\": \"event\",\n  \"type\": \"checkout.session.completed\",\n  \"data\": {\n    \"object\": {\n      \"id\": \"cs_test_a1b2c3d4\",\n      \"payment_intent\": \"pi_3PabcXYZ123\",\n      \"payment_status\": \"paid\",\n      \"metadata\": {\n        \"rentalOrderId\": \"{{rentalOrderId}}\"\n      }\n    }\n  }\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/payments/confirm", "host": ["{{baseUrl}}"], "path": ["payments", "confirm"] }
+          }
+        },
+        {
+          "name": "Get User Payments History",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/payments?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["payments"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Payment Receipt By ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }],
+            "url": { "raw": "{{baseUrl}}/payments/{{paymentId}}", "host": ["{{baseUrl}}"], "path": ["payments", "{{paymentId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Reviews & Ratings",
+      "item": [
+        {
+          "name": "Submit Verified Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rentalOrderId\": \"{{rentalOrderId}}\",\n  \"gearItemId\": \"{{gearId}}\",\n  \"rating\": 5,\n  \"comment\": \"Exceptional build quality, poles held up seamlessly across rocky climbs!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/reviews", "host": ["{{baseUrl}}"], "path": ["reviews"] }
+          }
+        },
+        {
+          "name": "Get Gear Reviews (Public)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/reviews/gear/{{gearId}}", "host": ["{{baseUrl}}"], "path": ["reviews", "gear", "{{gearId}}"] }
+          }
+        }
+      ]
+    }
+  ]
+}

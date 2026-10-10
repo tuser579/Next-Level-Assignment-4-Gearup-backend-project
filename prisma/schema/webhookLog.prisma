@@ -1,10 +1,9 @@
-// prisma/schema/webhookLog.prisma
 model WebhookLog {
   id          String   @id @default(uuid())
-  eventId     String   @unique // "evt_xxx" from Stripe
+  eventId     String   @unique
   eventType   String
   processedAt DateTime @default(now())
-
+  
   @@index([eventId])
   @@map("webhook_logs")
 }

@@ -1,0 +1,37 @@
+// prisma/schema/gearItem.prisma
+model GearItem {
+  id                String            @id @default(uuid())
+  title             String
+  slug              String            @unique
+  description       String
+  brand             String
+  model             String?
+  condition         ItemCondition     @default(EXCELLENT)
+  rentalPricePerDay Float
+  depositFee        Float             @default(0)
+  totalStock        Int               @default(1)
+  availableStock    Int               @default(1)
+  location          String
+  images            String[]          // PostgreSQL text array
+  specifications    Json?             // Structured technical specs
+  status            GearStatus        @default(AVAILABLE)
+
+  // Relations
+  providerId        String
+  provider          User              @relation("ProviderGearItems", fields: [providerId], references: [id], onDelete: Cascade)
+
+  categoryId        String
+  category          Category          @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  orderItems        RentalOrderItem[]
+  reviews           Review[]
+
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([providerId])
+  @@index([categoryId])
+  @@index([brand])
+  @@index([rentalPricePerDay])
+  @@map("gear_items")
+}
