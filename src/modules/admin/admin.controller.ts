@@ -4,9 +4,11 @@ import { UserStatus } from "../../../generated/prisma/enums";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import { adminServices } from "./admin.service";
+import { TAdminRentalFilterQuery } from "./admin.interface";
 
 const getAllUsers = catchAsync(async (req: Request, res: Response) => {
     const result = await adminServices.getAllUsers(req.query as any);
+
     sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
@@ -21,6 +23,7 @@ const updateUserStatus = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
 
     const result = await adminServices.updateUserStatus(id as string, status as UserStatus);
+
     sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
@@ -30,7 +33,8 @@ const updateUserStatus = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllRentals = catchAsync(async (req: Request, res: Response) => {
-    const result = await adminServices.getAllRentals(req.query as any);
+    const result = await adminServices.getAllRentals(req.query as TAdminRentalFilterQuery);
+
     sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,

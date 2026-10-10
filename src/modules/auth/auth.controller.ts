@@ -3,6 +3,7 @@ import httpStatus from "http-status";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import { authServices } from "./auth.service";
+import { config } from "../../config";
 
 const register = catchAsync(async (req: Request, res: Response) => {
     const result = await authServices.registerUser(req.body);
@@ -18,16 +19,20 @@ const register = catchAsync(async (req: Request, res: Response) => {
 const login = catchAsync(async (req: Request, res: Response) => {
     const result = await authServices.loginUser(req.body);
 
+    const isProduction = config.node_env === "production";
+
     res.cookie("accessToken", result.accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        secure: isProduction,
+        sameSite: "none",
+        maxAge: 1000 * 60 * 60 * 24 * 7 // 7 day
     });
 
     res.cookie("refreshToken", result.refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        secure: isProduction,
+        sameSite: "none",
+        maxAge: 1000 * 60 * 60 * 24 * 7 // 7 day
     });
 
     sendResponse(res, {
@@ -44,9 +49,11 @@ const refreshToken = catchAsync(async(req:Request, res:Response) =>{
     
     const { accessToken } = await authServices.refreshToken(refreshToken);
 
+    const isProduction = config.node_env === "production";
+
     res.cookie("accessToken", accessToken, {
         httpOnly: true,
-        secure: false,
+        secure: isProduction,
         sameSite: "none",
         maxAge: 1000 * 60 * 60 * 24 * 7 // 7 day
     })

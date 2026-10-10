@@ -43,7 +43,7 @@
             "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] }
           }
         },
-        {
+        {  
           "name": "Login Customer",
           "event": [
             {
@@ -94,7 +94,7 @@
             },
             "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
           }
-        },in
+        },
         {
           "name": "Refresh Token",
           "request": {
