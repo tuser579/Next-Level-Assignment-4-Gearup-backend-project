@@ -64,17 +64,6 @@ const updateOrderStatusByProvider = catchAsync(async (req: Request, res: Respons
     });
 });
 
-const getAllRentalsForAdmin = catchAsync(async (req: Request, res: Response) => {
-    const result = await rentalServices.getAllRentalsForAdmin(req.query as any);
-    sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "All rental orders retrieved successfully",
-        data: result.rentals,
-        meta: result.meta,
-    });
-});
-
 export const rentalController = {
     createRentalOrder,
     getCustomerRentals,
@@ -82,5 +71,4 @@ export const rentalController = {
     cancelRentalOrder,
     getProviderIncomingOrders,
     updateOrderStatusByProvider,
-    getAllRentalsForAdmin,
 };

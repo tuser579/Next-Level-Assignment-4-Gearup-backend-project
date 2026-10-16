@@ -6,6 +6,7 @@ import { categoryServices } from "./category.service";
 
 const createCategory = catchAsync(async (req: Request, res: Response) => {
     const result = await categoryServices.createCategory(req.body);
+
     sendResponse(res, {
         statusCode: httpStatus.CREATED,
         success: true,
@@ -16,6 +17,7 @@ const createCategory = catchAsync(async (req: Request, res: Response) => {
 
 const getAllCategories = catchAsync(async (req: Request, res: Response) => {
     const result = await categoryServices.getAllCategories();
+
     sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
@@ -26,6 +28,7 @@ const getAllCategories = catchAsync(async (req: Request, res: Response) => {
 
 const getCategoryById = catchAsync(async (req: Request, res: Response) => {
     const result = await categoryServices.getCategoryById(req.params.id as string);
+    
     sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,

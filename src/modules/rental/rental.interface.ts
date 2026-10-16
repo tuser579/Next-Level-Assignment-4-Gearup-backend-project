@@ -11,10 +11,3 @@ export type TCreateRentalPayload = {
     items: TRentalItemInput[];
     notes?: string;
 };
-
-export type TRentalFilterQuery = {
-    page?: string;
-    limit?: string;
-    status?: RentalOrderStatus;
-    paymentStatus?: PaymentStatus;
-};

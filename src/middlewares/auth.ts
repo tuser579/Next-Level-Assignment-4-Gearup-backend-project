@@ -4,6 +4,7 @@ import { Role } from "../../generated/prisma/enums";
 import { catchAsync } from "../utils/catchAsync";
 import { jwtUtils } from "../utils/jwt";
 import { config } from "../config";
+import { prisma } from "../lib/prisma";
 
 declare global {
     namespace Express {
@@ -41,6 +42,27 @@ export const auth = (...requiredRoles: Role[]) => {
                 success: false,
                 message: "Forbidden! You do not have permission to access this resource.",
             });
+        }
+
+        const user = await prisma.user.findUnique({
+            where: {
+                email: decodedUser.email,
+                role: decodedUser.role
+            },
+            select: {
+                id: true,
+                email: true,
+                role: true,
+                status: true,
+            }
+        })
+
+        if (!user) {
+            throw new Error("User not found. Please log in again.");
+        }
+
+        if(user.status === "BLOCKED") {
+            throw new Error("User is blocked. Please contact the admin for assistance.");
         }
 
         req.user = decodedUser;

@@ -1,5 +1,4 @@
-import { Role, UserStatus } from "../../../generated/prisma/enums";
-import { TRentalFilterQuery } from "../rental/rental.interface";
+import { PaymentStatus, RentalOrderStatus, Role, UserStatus } from "../../../generated/prisma/enums";
 
 export type TUserFilterQuery = {
     role?: Role;
@@ -13,4 +12,9 @@ export type TUpdateUserStatusPayload = {
     status: UserStatus;
 };
 
-export type TAdminRentalFilterQuery = TRentalFilterQuery;
+export type TRentalFilterQuery = {
+    page?: string;
+    limit?: string;
+    status?: RentalOrderStatus;
+    paymentStatus?: PaymentStatus;
+};

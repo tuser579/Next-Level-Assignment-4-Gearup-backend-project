@@ -6,6 +6,7 @@ import { gearServices } from "./gear.service";
 
 const getAllGear = catchAsync(async (req: Request, res: Response) => {
     const result = await gearServices.getAllGear(req.query as any);
+
     sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
@@ -17,6 +18,7 @@ const getAllGear = catchAsync(async (req: Request, res: Response) => {
 
 const getGearById = catchAsync(async (req: Request, res: Response) => {
     const result = await gearServices.getGearById(req.params.id as string);
+    
     sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,

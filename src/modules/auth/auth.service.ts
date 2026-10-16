@@ -17,7 +17,7 @@ const registerUser = async (payload: TRegisterPayload) => {
         throw err;
     }
 
-    const hashedPassword = await bcrypt.hash(payload.password, config.bcrypt_salt_rounds);
+    const hashedPassword = await bcrypt.hash(password, config.bcrypt_salt_rounds);
 
     const newUser = await prisma.user.create({
         data: {

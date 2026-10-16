@@ -1,7 +1,6 @@
 import { UserStatus } from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
-import { rentalServices } from "../rental/rental.service";
-import { TAdminRentalFilterQuery, TUserFilterQuery } from "./admin.interface";
+import { TRentalFilterQuery, TUserFilterQuery } from "./admin.interface";
 
 const getAllUsers = async (query: TUserFilterQuery) => {
     const page = Number(query.page) || 1;
@@ -18,16 +17,17 @@ const getAllUsers = async (query: TUserFilterQuery) => {
         ];
     }
 
-    const [users, total] = await Promise.all([
+    const [ users ] = await Promise.all([
         prisma.user.findMany({
             where: whereCondition,
             skip,
             take: limit,
             select: { id: true, name: true, email: true, role: true, status: true, phone: true, createdAt: true },
             orderBy: { createdAt: "desc" },
-        }),
-        prisma.user.count({ where: whereCondition }),
+        })
     ]);
+
+    const total = users.length; 
 
     return { users, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
 };
@@ -40,8 +40,32 @@ const updateUserStatus = async (userId: string, status: UserStatus) => {
     });
 };
 
-const getAllRentals = async (query: TAdminRentalFilterQuery) => {
-    return await rentalServices.getAllRentalsForAdmin(query);
+const getAllRentalsForAdmin = async (query: TRentalFilterQuery) => {
+    const page = Number(query.page) || 1;
+    const limit = Number(query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+    if (query.status) where.status = query.status;
+    if (query.paymentStatus) where.paymentStatus = query.paymentStatus;
+
+    const [rentals, total] = await Promise.all([
+        prisma.rentalOrder.findMany({
+            where,
+            skip,
+            take: limit,
+            include: {
+                customer: { select: { id: true, name: true, email: true } },
+                items: { include: { gearItem: { select: { id: true, title: true } } } },
+                payments: true,
+            },
+            orderBy: { createdAt: "desc" },
+        }),
+        prisma.rentalOrder.count({ where }),
+    ]);
+
+    return { rentals, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
 };
 
-export const adminServices = { getAllUsers, updateUserStatus, getAllRentals };
+
+export const adminServices = { getAllUsers, updateUserStatus, getAllRentalsForAdmin };

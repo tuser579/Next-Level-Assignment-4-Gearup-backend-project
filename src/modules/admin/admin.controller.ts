@@ -4,7 +4,7 @@ import { UserStatus } from "../../../generated/prisma/enums";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import { adminServices } from "./admin.service";
-import { TAdminRentalFilterQuery } from "./admin.interface";
+import { TRentalFilterQuery } from "./admin.interface";
 
 const getAllUsers = catchAsync(async (req: Request, res: Response) => {
     const result = await adminServices.getAllUsers(req.query as any);
@@ -32,12 +32,12 @@ const updateUserStatus = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-const getAllRentals = catchAsync(async (req: Request, res: Response) => {
-    const result = await adminServices.getAllRentals(req.query as TAdminRentalFilterQuery);
+const getAllRentalsForAdmin = catchAsync(async (req: Request, res: Response) => {
+    const result = await adminServices.getAllRentalsForAdmin(req.query as TRentalFilterQuery);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
-        success: true,
+        success: true,  
         message: "All rental orders retrieved successfully",
         data: result.rentals,
         meta: result.meta,
@@ -47,5 +47,5 @@ const getAllRentals = catchAsync(async (req: Request, res: Response) => {
 export const adminController = {
     getAllUsers,
     updateUserStatus,
-    getAllRentals,
+    getAllRentalsForAdmin,
 };

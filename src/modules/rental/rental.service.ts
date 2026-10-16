@@ -1,7 +1,7 @@
 import httpStatus from "http-status";
 import { PaymentStatus, RentalOrderStatus, Role } from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
-import { TCreateRentalPayload, TRentalFilterQuery } from "./rental.interface";
+import { TCreateRentalPayload } from "./rental.interface";
 
 const createRentalOrder = async (customerId: string, payload: TCreateRentalPayload) => {
     const start = new Date(payload.startDate);
@@ -189,39 +189,11 @@ const updateOrderStatusByProvider = async (orderId: string, providerId: string, 
     });
 };
 
-const getAllRentalsForAdmin = async (query: TRentalFilterQuery) => {
-    const page = Number(query.page) || 1;
-    const limit = Number(query.limit) || 10;
-    const skip = (page - 1) * limit;
-
-    const where: any = {};
-    if (query.status) where.status = query.status;
-    if (query.paymentStatus) where.paymentStatus = query.paymentStatus;
-
-    const [rentals, total] = await Promise.all([
-        prisma.rentalOrder.findMany({
-            where,
-            skip,
-            take: limit,
-            include: {
-                customer: { select: { id: true, name: true, email: true } },
-                items: { include: { gearItem: { select: { id: true, title: true } } } },
-                payments: true,
-            },
-            orderBy: { createdAt: "desc" },
-        }),
-        prisma.rentalOrder.count({ where }),
-    ]);
-
-    return { rentals, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
-};
-
 export const rentalServices = {
     createRentalOrder,
     getCustomerRentals,
     getRentalById,
     cancelRentalOrder,
     getProviderIncomingOrders,
-    updateOrderStatusByProvider,
-    getAllRentalsForAdmin,
+    updateOrderStatusByProvider
 };
