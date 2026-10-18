@@ -7,7 +7,8 @@ export const config = {
     port: process.env.PORT || 5000,
     database_url: process.env.DATABASE_URL!,
     node_env: process.env.NODE_ENV || "development",
-    app_url: process.env.APP_URL || "http://localhost:5000",
+    app_url: process.env.APP_URL!,
+    app_url_local: process.env.APP_URL_LOCAL! || "http://localhost:5000",  
     bcrypt_salt_rounds: Number(process.env.BCRYPT_SALT_ROUNDS) || 12,
 
     jwt_access_secret: process.env.JWT_ACCESS_SECRET!,

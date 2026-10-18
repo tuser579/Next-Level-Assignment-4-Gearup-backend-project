@@ -11,13 +11,14 @@ import { paymentRoutes } from "./modules/payment/payment.route";
 import { reviewRoutes } from "./modules/review/review.route";
 import { notFound } from "./middlewares/notFound";
 import { globalErrorHandler } from "./middlewares/globalErrorHandler";
+import { config } from "./config";
 
 const app: Application = express();
 
 // 1. CORS Configuration
 app.use(
     cors({
-        origin: ["http://localhost:3000", "https://yourfrontend.com"],
+        origin: [config.app_url_local, config.app_url],
         credentials: true,
     })
 );

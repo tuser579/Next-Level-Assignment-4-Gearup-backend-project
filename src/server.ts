@@ -4,7 +4,7 @@ import { config } from "./config";
 
 const PORT = config.port;
 
-async function bootstrap() {
+async function main() {
     try {
         // 1. Verify database connection before binding HTTP port
         await prisma.$connect();
@@ -21,4 +21,4 @@ async function bootstrap() {
     }
 }
 
-bootstrap();
+main();
