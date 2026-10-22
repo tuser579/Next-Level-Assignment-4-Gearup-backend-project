@@ -5,7 +5,7 @@
   "main": "server.ts",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "prisma generate && esbuild api/index.ts --bundle --platform=node --target=node20 --format=esm --outfile=api/index.js --packages=external && tsc",
+    "build": "prisma generate && esbuild src/serverless.ts --bundle --platform=node --target=node20 --format=esm --outfile=api/index.js --packages=external && tsc",
     "postinstall": "prisma generate",
     "start": "node dist/server.js",
     "stripe:webhook": "stripe listen --all-snapshot --forward-to localhost:5000/api/payments/confirm",

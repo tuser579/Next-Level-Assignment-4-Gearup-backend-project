@@ -2227,8 +2227,8 @@ app.use(notFound);
 app.use(globalErrorHandler);
 var app_default = app;
 
-// api/index.ts
-var index_default = app_default;
+// src/serverless.ts
+var serverless_default = app_default;
 export {
-  index_default as default
+  serverless_default as default
 };
