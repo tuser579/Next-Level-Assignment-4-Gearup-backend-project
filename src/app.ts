@@ -32,7 +32,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // 4. Base Health Check Route
-app.get("/", (req: Request, res: Response) => {
+app.get(["/", "/api"], (req: Request, res: Response) => {
     res.status(200).json({
         success: true,
         message: "API Server is running successfully!",
