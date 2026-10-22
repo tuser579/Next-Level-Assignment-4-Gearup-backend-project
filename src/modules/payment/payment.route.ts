@@ -20,7 +20,7 @@ router.get("/refunds", auth(Role.CUSTOMER, Role.PROVIDER, Role.ADMIN), paymentCo
 router.get("/refunds/:id", auth(Role.CUSTOMER, Role.PROVIDER, Role.ADMIN), paymentController.getRefundById);
 
 // Payment audit and receipts
-router.get("/", auth(Role.CUSTOMER, Role.ADMIN), paymentController.getUserPayments);
-router.get("/:id", auth(Role.CUSTOMER, Role.ADMIN), paymentController.getPaymentById);
+router.get("/", auth(Role.CUSTOMER, Role.PROVIDER, Role.ADMIN), paymentController.getUserPayments);
+router.get("/:id", auth(Role.CUSTOMER, Role.PROVIDER, Role.ADMIN), paymentController.getPaymentById);
 
 export const paymentRoutes = router;

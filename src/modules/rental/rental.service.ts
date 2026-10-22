@@ -96,15 +96,6 @@ const getRentalById = async (orderId: string, userId: string, userRole: Role) =>
         throw err;
     }
 
-    if (userRole === Role.PROVIDER) {
-        const ownsItem = order.items.some((i) => i.gearItem.providerId === userId);
-        if (!ownsItem) {
-            const err: any = new Error("Forbidden: Order does not contain gear items owned by you.");
-            err.statusCode = httpStatus.FORBIDDEN;
-            throw err;
-        }
-    }
-
     return order;
 };
 
@@ -116,7 +107,7 @@ const cancelRentalOrder = async (orderId: string, userId: string, userRole: stri
             include: { items: true, payments: { where: { status: PaymentStatus.PAID } } },
         });
 
-        if (userRole !== "ADMIN" && order.customerId !== userId) {
+        if (userRole !== Role.ADMIN && userRole !== Role.PROVIDER && order.customerId !== userId) {
             const err: any = new Error("Forbidden: You cannot cancel this order.");
             err.statusCode = httpStatus.FORBIDDEN;
             throw err;
@@ -173,11 +164,8 @@ const cancelRentalOrder = async (orderId: string, userId: string, userRole: stri
     return updatedOrder;
 };
 
-const getProviderIncomingOrders = async (providerId: string) => {
+const getProviderIncomingOrders = async (_providerId?: string) => {
     return await prisma.rentalOrder.findMany({
-        where: {
-            items: { some: { gearItem: { providerId } } },
-        },
         include: {
             customer: { select: { id: true, name: true, phone: true } },
             items: { include: { gearItem: true } },
@@ -187,20 +175,12 @@ const getProviderIncomingOrders = async (providerId: string) => {
     });
 };
 
-const updateOrderStatusByProvider = async (orderId: string, providerId: string, nextStatus: RentalOrderStatus) => {
+const updateOrderStatusByProvider = async (orderId: string, _providerId: string, nextStatus: RentalOrderStatus) => {
     return await prisma.$transaction(async (tx) => {
         const order = await tx.rentalOrder.findUniqueOrThrow({
             where: { id: orderId },
             include: { items: { include: { gearItem: true } } },
         });
-
-        // Verify provider owns at least one item in the order
-        const ownsItem = order.items.some((i) => i.gearItem.providerId === providerId);
-        if (!ownsItem) {
-            const err: any = new Error("Forbidden: Order does not contain gear items owned by you.");
-            err.statusCode = httpStatus.FORBIDDEN;
-            throw err;
-        }
 
         // Restore gear stock upon physical equipment return
         if (nextStatus === RentalOrderStatus.RETURNED && order.status !== RentalOrderStatus.RETURNED) {

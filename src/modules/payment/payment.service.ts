@@ -298,7 +298,7 @@ const getUserPayments = async (userId: string, role: string, query: { page?: str
     const limit = Number(query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const whereCondition = role === "ADMIN" ? {} : { customerId: userId };
+    const whereCondition = role === Role.ADMIN || role === Role.PROVIDER ? {} : { customerId: userId };
 
     const [payments, total] = await Promise.all([
         prisma.payment.findMany({
@@ -331,7 +331,7 @@ const getPaymentById = async (paymentId: string, userId: string, role: string) =
         },
     });
 
-    if (role !== "ADMIN" && payment.customerId !== userId) {
+    if (role !== Role.ADMIN && role !== Role.PROVIDER && payment.customerId !== userId) {
         const err: any = new Error("Forbidden: You do not have access to this payment receipt.");
         err.statusCode = httpStatus.FORBIDDEN;
         throw err;
@@ -350,21 +350,11 @@ const getAllRefunds = async (userId: string, role: string, query: { page?: strin
 
     let whereCondition: any = {};
 
-    if (role === Role.ADMIN) {
+    if (role === Role.ADMIN || role === Role.PROVIDER) {
         whereCondition = {};
     } else if (role === Role.CUSTOMER) {
         whereCondition = {
             rentalOrder: { customerId: userId },
-        };
-    } else if (role === Role.PROVIDER) {
-        whereCondition = {
-            rentalOrder: {
-                items: {
-                    some: {
-                        gearItem: { providerId: userId },
-                    },
-                },
-            },
         };
     }
 
@@ -422,15 +412,6 @@ const getRefundById = async (refundId: string, userId: string, role: string) => 
         throw err;
     }
 
-    if (role === Role.PROVIDER) {
-        const ownsItem = refund.rentalOrder.items.some((i) => i.gearItem.providerId === userId);
-        if (!ownsItem) {
-            const err: any = new Error("Forbidden: You do not have access to this refund record.");
-            err.statusCode = httpStatus.FORBIDDEN;
-            throw err;
-        }
-    }
-
     return refund;
 };
 
@@ -457,15 +438,6 @@ const initiateRefund = async (
         },
     });
 
-    // Provider check: ensure provider owns at least one gear item in this order
-    if (userRole === Role.PROVIDER) {
-        const ownsItem = order.items.some((i) => i.gearItem.providerId === userId);
-        if (!ownsItem) {
-            const err: any = new Error("Forbidden: You cannot refund an order for equipment you do not own.");
-            err.statusCode = httpStatus.FORBIDDEN;
-            throw err;
-        }
-    }
 
     const paidPayment = order.payments[0];
     if (!paidPayment || !paidPayment.stripePaymentIntentId) {
@@ -533,14 +505,6 @@ const autoRefundSecurityDeposit = async (
         },
     });
 
-    if (userRole === Role.PROVIDER) {
-        const ownsItem = order.items.some((i) => i.gearItem.providerId === userId);
-        if (!ownsItem) {
-            const err: any = new Error("Forbidden: You cannot process refunds for equipment you do not own.");
-            err.statusCode = httpStatus.FORBIDDEN;
-            throw err;
-        }
-    }
 
     if (order.status !== RentalOrderStatus.RETURNED && userRole !== Role.ADMIN) {
         const err: any = new Error("Security deposit can only be automatically refunded after equipment has been marked as RETURNED.");
