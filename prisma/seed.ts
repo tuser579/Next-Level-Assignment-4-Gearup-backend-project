@@ -35,19 +35,19 @@ async function main() {
     console.time("⏱️ Total Execution Time");
 
     // 1. Purge Existing Records (Reverse Relational Order)
-    console.log("🧹 [1/6] Cleaning existing database records...");
-    await prisma.$transaction([
-        prisma.refund.deleteMany(),
-        prisma.webhookLog.deleteMany(),
-        prisma.review.deleteMany(),
-        prisma.payment.deleteMany(),
-        prisma.rentalOrderItem.deleteMany(),
-        prisma.rentalOrder.deleteMany(),
-        prisma.gearItem.deleteMany(),
-        prisma.category.deleteMany(),
-        prisma.user.deleteMany(),
-    ]);
-    console.log("   ✔ Previous database state cleanly wiped.\n");
+    // console.log("🧹 [1/6] Cleaning existing database records...");
+    // await prisma.$transaction([
+    //     prisma.refund.deleteMany(),
+    //     prisma.webhookLog.deleteMany(),
+    //     prisma.review.deleteMany(),
+    //     prisma.payment.deleteMany(),
+    //     prisma.rentalOrderItem.deleteMany(),
+    //     prisma.rentalOrder.deleteMany(),
+    //     prisma.gearItem.deleteMany(),
+    //     prisma.category.deleteMany(),
+    //     prisma.user.deleteMany(),
+    // ]);
+    // console.log("   ✔ Previous database state cleanly wiped.\n");
 
     // 2. Pre-hash Passwords (reused across accounts for high performance)
     console.log("🔐 [2/6] Generating cryptographic credential hashes...");
@@ -310,7 +310,7 @@ async function main() {
                 create: {
                     gearItemId: gearTent.id,
                     quantity: 1,
-                    unitPricePerDay: 500.0,
+                    unitPricePerDay: 500.0,  
                     depositPerUnit: 1500.0,
                     subtotal: 3000.0,
                 },
