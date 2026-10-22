@@ -8,13 +8,15 @@ model Payment {
   customer              User          @relation("CustomerPayments", fields: [customerId], references: [id], onDelete: Cascade)
 
   amount                Float
-  currency              String        @default("usd")
+  currency              String        @default("bdt")
   method                PaymentMethod @default(STRIPE)
   status                PaymentStatus @default(PENDING)
 
   stripeSessionId       String?       @unique
   stripePaymentIntentId String?       @unique
   paidAt                DateTime?
+
+  refunds               Refund[]
 
   createdAt             DateTime      @default(now())
   updatedAt             DateTime      @updatedAt

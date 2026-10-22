@@ -19,5 +19,5 @@ export const config = {
     stripe_secret_key: process.env.STRIPE_SECRET_KEY!,
     stripe_webhook_secret: process.env.STRIPE_WEBHOOK_SECRET!,
     stripe_webhook_secret_rolling: process.env.STRIPE_WEBHOOK_SECRET_ROLLING || "",
-    stripe_product_price_id: process.env.STRIPE_PRODUCT_PRICE_ID!,
+    stripe_product_price_id: process.env.STRIPE_PRODUCT_PRICE_ID || "",
 };

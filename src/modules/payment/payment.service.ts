@@ -3,7 +3,7 @@ import httpStatus from "http-status";
 import { prisma } from "../../lib/prisma";
 import { stripe } from "../../lib/stripe";
 import { config } from "../../config";
-import { RentalOrderStatus, PaymentStatus, PaymentMethod } from "../../../generated/prisma/enums";
+import { RentalOrderStatus, PaymentStatus, PaymentMethod, Role } from "../../../generated/prisma/enums";
 
 /**
  * 1. Create Dynamic Rental Checkout Session
@@ -40,7 +40,7 @@ const createRentalCheckoutSession = async (rentalOrderId: string, customerId: st
     // Construct dynamic line items for Stripe Checkout
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = order.items.map((item) => ({
         price_data: {
-            currency: "usd",
+            currency: "bdt",
             product_data: {
                 name: `${item.gearItem.title} (${order.totalDays} Days Rental)`,
                 description: `Brand: ${item.gearItem.brand} | Model: ${item.gearItem.model || "Standard"} | Condition: ${item.gearItem.condition}`,
@@ -55,7 +55,7 @@ const createRentalCheckoutSession = async (rentalOrderId: string, customerId: st
     if (order.depositFee > 0) {
         lineItems.push({
             price_data: {
-                currency: "usd",
+                currency: "bdt",
                 product_data: {
                     name: "Refundable Security Deposit Fee",
                     description: "100% refundable upon safe return and inspection of equipment.",
@@ -90,7 +90,7 @@ const createRentalCheckoutSession = async (rentalOrderId: string, customerId: st
             rentalOrderId: order.id,
             customerId: order.customerId,
             amount: order.totalAmount,
-            currency: "usd",
+            currency: "bdt",
             method: PaymentMethod.STRIPE,
             status: PaymentStatus.PENDING,
             stripeSessionId: session.id,
@@ -208,6 +208,8 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
         case "charge.refunded": {
             const charge = event.data.object as Stripe.Charge;
             const intentId = charge.payment_intent as string;
+            const isFullRefund = charge.refunded; // true if 100% refunded, false if partial refund
+            const totalRefunded = charge.amount_refunded / 100;
 
             await prisma.$transaction(async (tx) => {
                 const payment = await tx.payment.findFirst({
@@ -216,24 +218,68 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
                 });
 
                 if (payment) {
-                    await tx.payment.update({
-                        where: { id: payment.id },
-                        data: { status: PaymentStatus.REFUNDED },
-                    });
+                    const currentOrderStatus = payment.rentalOrder.status;
 
-                    await tx.rentalOrder.update({
-                        where: { id: payment.rentalOrderId },
-                        data: { paymentStatus: PaymentStatus.REFUNDED, status: RentalOrderStatus.CANCELLED },
-                    });
-
-                    // Restore gear inventory upon refund/cancellation
-                    for (const item of payment.rentalOrder.items) {
-                        await tx.gearItem.update({
-                            where: { id: item.gearItemId },
-                            data: { availableStock: { increment: item.quantity } },
-                        });
+                    // 1. Record each refund in the Refund table (idempotent upsert by stripeRefundId)
+                    if (charge.refunds && charge.refunds.data && charge.refunds.data.length > 0) {
+                        for (const ref of charge.refunds.data) {
+                            await tx.refund.upsert({
+                                where: { stripeRefundId: ref.id },
+                                create: {
+                                    stripeRefundId: ref.id,
+                                    paymentId: payment.id,
+                                    rentalOrderId: payment.rentalOrderId,
+                                    amount: ref.amount / 100,
+                                    currency: ref.currency,
+                                    reason: (ref.metadata?.reason as string) || ref.reason || "Charge refunded",
+                                    refundType: (ref.metadata?.refundType as string) || (isFullRefund ? "FULL" : "PARTIAL"),
+                                    status: ref.status || "succeeded",
+                                },
+                                update: {
+                                    status: ref.status || "succeeded",
+                                    amount: ref.amount / 100,
+                                },
+                            });
+                        }
                     }
-                    console.log(`🔄 [Webhook] Order ${payment.rentalOrder.orderNumber} refunded and stock restored.`);
+
+                    if (isFullRefund) {
+                        // 2. Full Refund: Mark payment status as REFUNDED
+                        await tx.payment.update({
+                            where: { id: payment.id },
+                            data: { status: PaymentStatus.REFUNDED },
+                        });
+
+                        // 3. Mark Rental Order as REFUNDED and CANCELLED (if not already completed/returned)
+                        await tx.rentalOrder.update({
+                            where: { id: payment.rentalOrderId },
+                            data: {
+                                paymentStatus: PaymentStatus.REFUNDED,
+                                ...(currentOrderStatus !== RentalOrderStatus.RETURNED && {
+                                    status: RentalOrderStatus.CANCELLED,
+                                }),
+                            },
+                        });
+
+                        // 4. Restore gear inventory ONLY if it hasn't been restored already
+                        if (
+                            currentOrderStatus !== RentalOrderStatus.RETURNED &&
+                            currentOrderStatus !== RentalOrderStatus.CANCELLED
+                        ) {
+                            for (const item of payment.rentalOrder.items) {
+                                await tx.gearItem.update({
+                                    where: { id: item.gearItemId },
+                                    data: { availableStock: { increment: item.quantity } },
+                                });
+                            }
+                        }
+
+                        console.log(`🔄 [Webhook] Order ${payment.rentalOrder.orderNumber} FULLY refunded (${totalRefunded} ${charge.currency.toUpperCase()}). Stored in Refund table.`);
+                    } else {
+                        // Partial Refund (e.g., Security Deposit Refund after return)
+                        // Preserve existing order status (e.g. RETURNED) and do NOT modify inventory
+                        console.log(`💵 [Webhook] Order ${payment.rentalOrder.orderNumber} PARTIALLY refunded (${totalRefunded} ${charge.currency.toUpperCase()}). Stored in Refund table.`);
+                    }
                 }
             });
             break;
@@ -281,6 +327,7 @@ const getPaymentById = async (paymentId: string, userId: string, role: string) =
                     items: { include: { gearItem: { select: { title: true, brand: true } } } },
                 },
             },
+            refunds: true,
         },
     });
 
@@ -293,9 +340,286 @@ const getPaymentById = async (paymentId: string, userId: string, role: string) =
     return payment;
 };
 
+/**
+ * 3.1 Get All Refund Records (Paginated & Role-Filtered)
+ */
+const getAllRefunds = async (userId: string, role: string, query: { page?: string; limit?: string }) => {
+    const page = Number(query.page) || 1;
+    const limit = Number(query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    let whereCondition: any = {};
+
+    if (role === Role.ADMIN) {
+        whereCondition = {};
+    } else if (role === Role.CUSTOMER) {
+        whereCondition = {
+            rentalOrder: { customerId: userId },
+        };
+    } else if (role === Role.PROVIDER) {
+        whereCondition = {
+            rentalOrder: {
+                items: {
+                    some: {
+                        gearItem: { providerId: userId },
+                    },
+                },
+            },
+        };
+    }
+
+    const [refunds, total] = await Promise.all([
+        prisma.refund.findMany({
+            where: whereCondition,
+            skip,
+            take: limit,
+            include: {
+                rentalOrder: {
+                    select: {
+                        id: true,
+                        orderNumber: true,
+                        status: true,
+                        depositFee: true,
+                    },
+                },
+                payment: {
+                    select: {
+                        id: true,
+                        transactionId: true,
+                        amount: true,
+                        currency: true,
+                    },
+                },
+            },
+            orderBy: { createdAt: "desc" },
+        }),
+        prisma.refund.count({ where: whereCondition }),
+    ]);
+
+    return { refunds, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
+};
+
+/**
+ * 3.2 Get Refund Details by ID
+ */
+const getRefundById = async (refundId: string, userId: string, role: string) => {
+    const refund = await prisma.refund.findUniqueOrThrow({
+        where: { id: refundId },
+        include: {
+            rentalOrder: {
+                include: {
+                    customer: { select: { id: true, name: true, email: true } },
+                    items: { include: { gearItem: { select: { id: true, title: true, providerId: true } } } },
+                },
+            },
+            payment: true,
+        },
+    });
+
+    if (role === Role.CUSTOMER && refund.rentalOrder.customerId !== userId) {
+        const err: any = new Error("Forbidden: You do not have access to this refund record.");
+        err.statusCode = httpStatus.FORBIDDEN;
+        throw err;
+    }
+
+    if (role === Role.PROVIDER) {
+        const ownsItem = refund.rentalOrder.items.some((i) => i.gearItem.providerId === userId);
+        if (!ownsItem) {
+            const err: any = new Error("Forbidden: You do not have access to this refund record.");
+            err.statusCode = httpStatus.FORBIDDEN;
+            throw err;
+        }
+    }
+
+    return refund;
+};
+
+/**
+ * 4. Initiate Refund (Partial or Full)
+ * Allows Admins or Providers to issue refunds via Stripe:
+ * - If payload.amount is omitted: 100% full refund
+ * - If payload.amount is given: Partial refund of that specific amount
+ */
+const initiateRefund = async (
+    rentalOrderId: string,
+    userId: string,
+    userRole: string,
+    payload?: { amount?: number; reason?: string }
+) => {
+    const order = await prisma.rentalOrder.findUniqueOrThrow({
+        where: { id: rentalOrderId },
+        include: {
+            payments: {
+                where: { status: PaymentStatus.PAID },
+                orderBy: { createdAt: "desc" },
+            },
+            items: { include: { gearItem: true } },
+        },
+    });
+
+    // Provider check: ensure provider owns at least one gear item in this order
+    if (userRole === Role.PROVIDER) {
+        const ownsItem = order.items.some((i) => i.gearItem.providerId === userId);
+        if (!ownsItem) {
+            const err: any = new Error("Forbidden: You cannot refund an order for equipment you do not own.");
+            err.statusCode = httpStatus.FORBIDDEN;
+            throw err;
+        }
+    }
+
+    const paidPayment = order.payments[0];
+    if (!paidPayment || !paidPayment.stripePaymentIntentId) {
+        const err: any = new Error("No completed Stripe payment found to refund for this order.");
+        err.statusCode = httpStatus.BAD_REQUEST;
+        throw err;
+    }
+
+    const refundAmount = payload?.amount;
+
+    if (refundAmount !== undefined) {
+        if (refundAmount <= 0) {
+            const err: any = new Error("Refund amount must be greater than zero.");
+            err.statusCode = httpStatus.BAD_REQUEST;
+            throw err;
+        }
+        if (refundAmount > paidPayment.amount) {
+            const err: any = new Error(`Refund amount cannot exceed total paid amount (${paidPayment.amount}).`);
+            err.statusCode = httpStatus.BAD_REQUEST;
+            throw err;
+        }
+    }
+
+    // Call Stripe Refund API
+    const refund = await stripe.refunds.create({
+        payment_intent: paidPayment.stripePaymentIntentId,
+        ...(refundAmount && { amount: Math.round(refundAmount * 100) }),
+        reason: "requested_by_customer",
+        metadata: {
+            rentalOrderId: order.id,
+            refundType: refundAmount ? "PARTIAL" : "FULL",
+            reason: payload?.reason || "Refund requested by admin/provider",
+            initiatedBy: userId,
+        },
+    });
+
+    return {
+        refundId: refund.id,
+        refundType: refundAmount ? "PARTIAL" : "FULL",
+        amountRefunded: refund.amount / 100,
+        currency: refund.currency,
+        status: refund.status,
+    };
+};
+
+/**
+ * 5. Auto Refund Security Deposit
+ * Automatically calculates and refunds the refundable deposit fee after equipment return inspection.
+ * Supports optional damage deduction fee.
+ */
+const autoRefundSecurityDeposit = async (
+    rentalOrderId: string,
+    userId: string,
+    userRole: string,
+    payload?: { damageDeduction?: number; reason?: string }
+) => {
+    const order = await prisma.rentalOrder.findUniqueOrThrow({
+        where: { id: rentalOrderId },
+        include: {
+            payments: {
+                where: { status: PaymentStatus.PAID },
+                orderBy: { createdAt: "desc" },
+            },
+            items: { include: { gearItem: true } },
+        },
+    });
+
+    if (userRole === Role.PROVIDER) {
+        const ownsItem = order.items.some((i) => i.gearItem.providerId === userId);
+        if (!ownsItem) {
+            const err: any = new Error("Forbidden: You cannot process refunds for equipment you do not own.");
+            err.statusCode = httpStatus.FORBIDDEN;
+            throw err;
+        }
+    }
+
+    if (order.status !== RentalOrderStatus.RETURNED && userRole !== Role.ADMIN) {
+        const err: any = new Error("Security deposit can only be automatically refunded after equipment has been marked as RETURNED.");
+        err.statusCode = httpStatus.BAD_REQUEST;
+        throw err;
+    }
+
+    if (order.depositFee <= 0) {
+        const err: any = new Error("This order does not have a refundable security deposit.");
+        err.statusCode = httpStatus.BAD_REQUEST;
+        throw err;
+    }
+
+    const paidPayment = order.payments[0];
+    if (!paidPayment || !paidPayment.stripePaymentIntentId) {
+        const err: any = new Error("No paid transaction found to refund.");
+        err.statusCode = httpStatus.BAD_REQUEST;
+        throw err;
+    }
+
+    const damageDeduction = payload?.damageDeduction || 0;
+
+    if (damageDeduction < 0) {
+        const err: any = new Error("Damage deduction cannot be negative.");
+        err.statusCode = httpStatus.BAD_REQUEST;
+        throw err;
+    }
+
+    if (damageDeduction > order.depositFee) {
+        const err: any = new Error(`Damage deduction (${damageDeduction}) cannot exceed the security deposit fee (${order.depositFee}).`);
+        err.statusCode = httpStatus.BAD_REQUEST;
+        throw err;
+    }
+
+    const netRefundableDeposit = order.depositFee - damageDeduction;
+
+    if (netRefundableDeposit <= 0) {
+        return {
+            rentalOrderId: order.id,
+            originalDepositFee: order.depositFee,
+            damageDeduction,
+            amountRefunded: 0,
+            message: "100% of the security deposit was retained to cover equipment damage/loss. No Stripe refund issued.",
+        };
+    }
+
+    // Process partial Stripe refund for the net security deposit
+    const refund = await stripe.refunds.create({
+        payment_intent: paidPayment.stripePaymentIntentId,
+        amount: Math.round(netRefundableDeposit * 100),
+        reason: "requested_by_customer",
+        metadata: {
+            rentalOrderId: order.id,
+            refundType: "SECURITY_DEPOSIT",
+            originalDepositFee: String(order.depositFee),
+            damageDeduction: String(damageDeduction),
+            reason: payload?.reason || "Automatic deposit refund upon equipment return & inspection",
+            initiatedBy: userId,
+        },
+    });
+
+    return {
+        refundId: refund.id,
+        rentalOrderId: order.id,
+        originalDepositFee: order.depositFee,
+        damageDeduction,
+        amountRefunded: refund.amount / 100,
+        currency: refund.currency,
+        status: refund.status,
+    };
+};
+
 export const paymentServices = {
     createRentalCheckoutSession,
     handleWebhook,
     getUserPayments,
     getPaymentById,
+    getAllRefunds,
+    getRefundById,
+    initiateRefund,
+    autoRefundSecurityDeposit,
 };

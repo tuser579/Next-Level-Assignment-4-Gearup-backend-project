@@ -1,6 +1,7 @@
 import httpStatus from "http-status";
 import { PaymentStatus, RentalOrderStatus, Role } from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
+import { stripe } from "../../lib/stripe";
 import { TCreateRentalPayload } from "./rental.interface";
 
 const createRentalOrder = async (customerId: string, payload: TCreateRentalPayload) => {
@@ -108,10 +109,11 @@ const getRentalById = async (orderId: string, userId: string, userRole: Role) =>
 };
 
 const cancelRentalOrder = async (orderId: string, userId: string, userRole: string) => {
-    return await prisma.$transaction(async (tx) => {
+    // 1. Transaction to update order status and release inventory
+    const updatedOrder = await prisma.$transaction(async (tx) => {
         const order = await tx.rentalOrder.findUniqueOrThrow({
             where: { id: orderId },
-            include: { items: true },
+            include: { items: true, payments: { where: { status: PaymentStatus.PAID } } },
         });
 
         if (userRole !== "ADMIN" && order.customerId !== userId) {
@@ -122,6 +124,12 @@ const cancelRentalOrder = async (orderId: string, userId: string, userRole: stri
 
         if (order.status === RentalOrderStatus.PICKED_UP || order.status === RentalOrderStatus.RETURNED) {
             const err: any = new Error("Cannot cancel an order that has already been picked up or completed.");
+            err.statusCode = httpStatus.BAD_REQUEST;
+            throw err;
+        }
+
+        if (order.status === RentalOrderStatus.CANCELLED) {
+            const err: any = new Error("Rental order is already cancelled.");
             err.statusCode = httpStatus.BAD_REQUEST;
             throw err;
         }
@@ -139,8 +147,30 @@ const cancelRentalOrder = async (orderId: string, userId: string, userRole: stri
         return await tx.rentalOrder.update({
             where: { id: orderId },
             data: { status: RentalOrderStatus.CANCELLED },
+            include: { payments: { where: { status: PaymentStatus.PAID } } },
         });
     });
+
+    // 2. Automatically trigger Full Stripe Refund if the order was paid
+    const paidPayment = updatedOrder.payments?.find((p) => p.stripePaymentIntentId);
+    if (paidPayment && paidPayment.stripePaymentIntentId) {
+        try {
+            await stripe.refunds.create({
+                payment_intent: paidPayment.stripePaymentIntentId,
+                reason: "requested_by_customer",
+                metadata: {
+                    rentalOrderId: orderId,
+                    refundType: "FULL",
+                    cancelledBy: userId,
+                },
+            });
+            console.log(`💸 [Auto Refund] Successfully issued Stripe refund for cancelled order ${updatedOrder.orderNumber}`);
+        } catch (stripeErr: any) {
+            console.error(`⚠️ [Auto Refund] Stripe refund failed for order ${updatedOrder.orderNumber}:`, stripeErr.message);
+        }
+    }
+
+    return updatedOrder;
 };
 
 const getProviderIncomingOrders = async (providerId: string) => {

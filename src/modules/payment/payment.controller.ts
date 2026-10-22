@@ -70,9 +70,81 @@ const getPaymentById = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const initiateRefund = catchAsync(async (req: Request, res: Response) => {
+    const { rentalOrderId, amount, reason } = req.body;
+
+    if (!rentalOrderId) {
+        return res.status(httpStatus.BAD_REQUEST).json({
+            success: false,
+            message: "rentalOrderId is required to process refund.",
+        });
+    }
+
+    const result = await paymentServices.initiateRefund(rentalOrderId, req.user!.id, req.user!.role, {
+        amount: amount !== undefined ? Number(amount) : undefined,
+        reason,
+    });
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: `${result.refundType === "FULL" ? "Full" : "Partial"} refund processed successfully via Stripe`,
+        data: result,
+    });
+});
+
+const autoRefundSecurityDeposit = catchAsync(async (req: Request, res: Response) => {
+    const { rentalOrderId } = req.params;
+    const { damageDeduction, reason } = req.body;
+
+    const result = await paymentServices.autoRefundSecurityDeposit(
+        rentalOrderId as string,
+        req.user!.id,
+        req.user!.role,
+        {
+            damageDeduction: damageDeduction !== undefined ? Number(damageDeduction) : 0,
+            reason,
+        }
+    );
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Refundable security deposit processed successfully",
+        data: result,
+    });
+});
+
+const getAllRefunds = catchAsync(async (req: Request, res: Response) => {
+    const result = await paymentServices.getAllRefunds(req.user!.id, req.user!.role, req.query as any);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Refund records fetched successfully",
+        data: result.refunds,
+        meta: result.meta,
+    });
+});
+
+const getRefundById = catchAsync(async (req: Request, res: Response) => {
+    const result = await paymentServices.getRefundById(req.params.id as string, req.user!.id, req.user!.role);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Refund details fetched successfully",
+        data: result,
+    });
+});
+
 export const paymentController = {
     createCheckoutSession,
     handleWebhook,
     getUserPayments,
     getPaymentById,
+    getAllRefunds,
+    getRefundById,
+    initiateRefund,
+    autoRefundSecurityDeposit,
 };
