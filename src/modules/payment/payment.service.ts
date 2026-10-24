@@ -171,11 +171,11 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
                     },
                 });
 
-                // 2. Transition Rental Order from PLACED -> CONFIRMED & PAID
+                // 2. Transition Rental Order from PLACED -> PAID
                 const order = await tx.rentalOrder.update({
                     where: { id: rentalOrderId },
                     data: {
-                        status: RentalOrderStatus.CONFIRMED,
+                        status: RentalOrderStatus.PAID,
                         paymentStatus: PaymentStatus.PAID,
                     },
                     include: { items: true },

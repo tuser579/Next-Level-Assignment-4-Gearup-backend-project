@@ -1443,7 +1443,7 @@ var handleWebhook = async (payload, signature) => {
         const order = await tx.rentalOrder.update({
           where: { id: rentalOrderId },
           data: {
-            status: RentalOrderStatus.CONFIRMED,
+            status: RentalOrderStatus.PAID,
             paymentStatus: PaymentStatus.PAID
           },
           include: { items: true }
