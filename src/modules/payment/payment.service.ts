@@ -310,8 +310,10 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
         }
 
         case "refund.created":
-        case "refund.updated": {
+        case "refund.updated":
+        case "refund.failed": {
             const refund = event.data.object as Stripe.Refund;
+            const refundStatus = refund.status || (event.type === "refund.failed" ? "failed" : "succeeded");
             const intentId =
                 typeof refund.payment_intent === "string"
                     ? refund.payment_intent
@@ -356,18 +358,18 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
                         rentalOrderId: payment.rentalOrderId,
                         amount: refund.amount / 100,
                         currency: refund.currency,
-                        reason: (refund.metadata?.reason as string) || refund.reason || "Refund processed",
+                        reason: (refund.metadata?.reason as string) || refund.reason || (event.type === "refund.failed" ? `Refund failed: ${refund.failure_reason || "Unknown"}` : "Refund processed"),
                         refundType: (refund.metadata?.refundType as string) || "FULL",
-                        status: refund.status || "succeeded",
+                        status: refundStatus,
                     },
                     update: {
-                        status: refund.status || "succeeded",
+                        status: refundStatus,
                         amount: refund.amount / 100,
                     },
                 });
 
-                // Also update payment & rental order status if full refund
-                if (refund.amount / 100 >= payment.amount) {
+                // Update payment & order status only when refund has succeeded
+                if (refundStatus === "succeeded" && refund.amount / 100 >= payment.amount) {
                     await prisma.payment.update({
                         where: { id: payment.id },
                         data: { status: PaymentStatus.REFUNDED },
@@ -378,7 +380,11 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
                     });
                 }
 
-                console.log(`💳 [Webhook] Refund ${refund.id} persisted/synced via ${event.type}.`);
+                if (event.type === "refund.failed" || refundStatus === "failed") {
+                    console.warn(`❌ [Webhook] Refund ${refund.id} failed. Reason: ${refund.failure_reason || "N/A"}`);
+                } else {
+                    console.log(`💳 [Webhook] Refund ${refund.id} persisted/synced via ${event.type}. Status: ${refundStatus}`);
+                }
             } else {
                 console.warn(`⚠️ [Webhook] Could not find associated payment for refund ${refund.id} (intent: ${intentId}, order: ${rentalOrderId}).`);
             }
