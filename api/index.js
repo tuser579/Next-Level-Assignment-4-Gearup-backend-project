@@ -1164,7 +1164,7 @@ var cancelRentalOrder = async (orderId, userId, userRole) => {
   const paidPayment = updatedOrder.payments?.find((p) => p.stripePaymentIntentId);
   if (paidPayment && paidPayment.stripePaymentIntentId) {
     try {
-      await stripe.refunds.create({
+      const refund = await stripe.refunds.create({
         payment_intent: paidPayment.stripePaymentIntentId,
         reason: "requested_by_customer",
         metadata: {
@@ -1173,7 +1173,32 @@ var cancelRentalOrder = async (orderId, userId, userRole) => {
           cancelledBy: userId
         }
       });
-      console.log(`\u{1F4B8} [Auto Refund] Successfully issued Stripe refund for cancelled order ${updatedOrder.orderNumber}`);
+      await prisma.refund.upsert({
+        where: { stripeRefundId: refund.id },
+        create: {
+          stripeRefundId: refund.id,
+          paymentId: paidPayment.id,
+          rentalOrderId: orderId,
+          amount: refund.amount / 100,
+          currency: refund.currency,
+          reason: refund.reason || "Full refund issued upon customer cancellation prior to pickup",
+          refundType: "FULL",
+          status: refund.status || "succeeded"
+        },
+        update: {
+          status: refund.status || "succeeded",
+          amount: refund.amount / 100
+        }
+      });
+      await prisma.payment.update({
+        where: { id: paidPayment.id },
+        data: { status: PaymentStatus.REFUNDED }
+      });
+      await prisma.rentalOrder.update({
+        where: { id: orderId },
+        data: { paymentStatus: PaymentStatus.REFUNDED }
+      });
+      console.log(`\u{1F4B8} [Auto Refund] Successfully issued Stripe refund and saved Refund entity for order ${updatedOrder.orderNumber}`);
     } catch (stripeErr) {
       console.error(`\u26A0\uFE0F [Auto Refund] Stripe refund failed for order ${updatedOrder.orderNumber}:`, stripeErr.message);
     }
@@ -1490,8 +1515,19 @@ var handleWebhook = async (payload, signature) => {
         });
         if (payment) {
           const currentOrderStatus = payment.rentalOrder.status;
-          if (charge.refunds && charge.refunds.data && charge.refunds.data.length > 0) {
-            for (const ref of charge.refunds.data) {
+          let refundList = charge.refunds?.data;
+          if (!refundList || refundList.length === 0) {
+            try {
+              const stripeRefunds = await stripe.refunds.list({
+                ...charge.id ? { charge: charge.id } : { payment_intent: intentId }
+              });
+              refundList = stripeRefunds.data;
+            } catch (err) {
+              console.error(`\u26A0\uFE0F [Webhook] Could not fetch refunds from Stripe for charge ${charge.id}:`, err.message);
+            }
+          }
+          if (refundList && refundList.length > 0) {
+            for (const ref of refundList) {
               await tx.refund.upsert({
                 where: { stripeRefundId: ref.id },
                 create: {
@@ -1539,6 +1575,37 @@ var handleWebhook = async (payload, signature) => {
           }
         }
       });
+      break;
+    }
+    case "refund.created":
+    case "refund.updated": {
+      const refund = event.data.object;
+      const intentId = refund.payment_intent;
+      if (intentId) {
+        const payment = await prisma.payment.findFirst({
+          where: { stripePaymentIntentId: intentId }
+        });
+        if (payment) {
+          await prisma.refund.upsert({
+            where: { stripeRefundId: refund.id },
+            create: {
+              stripeRefundId: refund.id,
+              paymentId: payment.id,
+              rentalOrderId: payment.rentalOrderId,
+              amount: refund.amount / 100,
+              currency: refund.currency,
+              reason: refund.metadata?.reason || refund.reason || "Refund processed",
+              refundType: refund.metadata?.refundType || "FULL",
+              status: refund.status || "succeeded"
+            },
+            update: {
+              status: refund.status || "succeeded",
+              amount: refund.amount / 100
+            }
+          });
+          console.log(`\u{1F4B3} [Webhook] Refund ${refund.id} persisted/synced via ${event.type}.`);
+        }
+      }
       break;
     }
     default:
@@ -1687,6 +1754,33 @@ var initiateRefund = async (rentalOrderId, userId, userRole, payload) => {
       initiatedBy: userId
     }
   });
+  await prisma.refund.upsert({
+    where: { stripeRefundId: refund.id },
+    create: {
+      stripeRefundId: refund.id,
+      paymentId: paidPayment.id,
+      rentalOrderId: order.id,
+      amount: refund.amount / 100,
+      currency: refund.currency,
+      reason: payload?.reason || refund.reason || "Refund requested by admin/provider",
+      refundType: refundAmount ? "PARTIAL" : "FULL",
+      status: refund.status || "succeeded"
+    },
+    update: {
+      status: refund.status || "succeeded",
+      amount: refund.amount / 100
+    }
+  });
+  if (!refundAmount || refundAmount >= paidPayment.amount) {
+    await prisma.payment.update({
+      where: { id: paidPayment.id },
+      data: { status: PaymentStatus.REFUNDED }
+    });
+    await prisma.rentalOrder.update({
+      where: { id: order.id },
+      data: { paymentStatus: PaymentStatus.REFUNDED }
+    });
+  }
   return {
     refundId: refund.id,
     refundType: refundAmount ? "PARTIAL" : "FULL",
@@ -1754,6 +1848,23 @@ var autoRefundSecurityDeposit = async (rentalOrderId, userId, userRole, payload)
       damageDeduction: String(damageDeduction),
       reason: payload?.reason || "Automatic deposit refund upon equipment return & inspection",
       initiatedBy: userId
+    }
+  });
+  await prisma.refund.upsert({
+    where: { stripeRefundId: refund.id },
+    create: {
+      stripeRefundId: refund.id,
+      paymentId: paidPayment.id,
+      rentalOrderId: order.id,
+      amount: refund.amount / 100,
+      currency: refund.currency,
+      reason: payload?.reason || "Automatic deposit refund upon equipment return & inspection",
+      refundType: "SECURITY_DEPOSIT",
+      status: refund.status || "succeeded"
+    },
+    update: {
+      status: refund.status || "succeeded",
+      amount: refund.amount / 100
     }
   });
   return {

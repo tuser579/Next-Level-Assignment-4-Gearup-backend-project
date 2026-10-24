@@ -233,8 +233,20 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
                     const currentOrderStatus = payment.rentalOrder.status;
 
                     // 1. Record each refund in the Refund table (idempotent upsert by stripeRefundId)
-                    if (charge.refunds && charge.refunds.data && charge.refunds.data.length > 0) {
-                        for (const ref of charge.refunds.data) {
+                    let refundList = charge.refunds?.data;
+                    if (!refundList || refundList.length === 0) {
+                        try {
+                            const stripeRefunds = await stripe.refunds.list({
+                                ...(charge.id ? { charge: charge.id } : { payment_intent: intentId }),
+                            });
+                            refundList = stripeRefunds.data;
+                        } catch (err: any) {
+                            console.error(`⚠️ [Webhook] Could not fetch refunds from Stripe for charge ${charge.id}:`, err.message);
+                        }
+                    }
+
+                    if (refundList && refundList.length > 0) {
+                        for (const ref of refundList) {
                             await tx.refund.upsert({
                                 where: { stripeRefundId: ref.id },
                                 create: {
@@ -294,6 +306,40 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
                     }
                 }
             });
+            break;
+        }
+
+        case "refund.created":
+        case "refund.updated": {
+            const refund = event.data.object as Stripe.Refund;
+            const intentId = refund.payment_intent as string;
+
+            if (intentId) {
+                const payment = await prisma.payment.findFirst({
+                    where: { stripePaymentIntentId: intentId },
+                });
+
+                if (payment) {
+                    await prisma.refund.upsert({
+                        where: { stripeRefundId: refund.id },
+                        create: {
+                            stripeRefundId: refund.id,
+                            paymentId: payment.id,
+                            rentalOrderId: payment.rentalOrderId,
+                            amount: refund.amount / 100,
+                            currency: refund.currency,
+                            reason: (refund.metadata?.reason as string) || refund.reason || "Refund processed",
+                            refundType: (refund.metadata?.refundType as string) || "FULL",
+                            status: refund.status || "succeeded",
+                        },
+                        update: {
+                            status: refund.status || "succeeded",
+                            amount: refund.amount / 100,
+                        },
+                    });
+                    console.log(`💳 [Webhook] Refund ${refund.id} persisted/synced via ${event.type}.`);
+                }
+            }
             break;
         }
 
@@ -486,6 +532,36 @@ const initiateRefund = async (
         },
     });
 
+    // Immediately persist the Refund entity in the database
+    await prisma.refund.upsert({
+        where: { stripeRefundId: refund.id },
+        create: {
+            stripeRefundId: refund.id,
+            paymentId: paidPayment.id,
+            rentalOrderId: order.id,
+            amount: refund.amount / 100,
+            currency: refund.currency,
+            reason: payload?.reason || refund.reason || "Refund requested by admin/provider",
+            refundType: refundAmount ? "PARTIAL" : "FULL",
+            status: refund.status || "succeeded",
+        },
+        update: {
+            status: refund.status || "succeeded",
+            amount: refund.amount / 100,
+        },
+    });
+
+    if (!refundAmount || refundAmount >= paidPayment.amount) {
+        await prisma.payment.update({
+            where: { id: paidPayment.id },
+            data: { status: PaymentStatus.REFUNDED },
+        });
+        await prisma.rentalOrder.update({
+            where: { id: order.id },
+            data: { paymentStatus: PaymentStatus.REFUNDED },
+        });
+    }
+
     return {
         refundId: refund.id,
         refundType: refundAmount ? "PARTIAL" : "FULL",
@@ -575,6 +651,25 @@ const autoRefundSecurityDeposit = async (
             damageDeduction: String(damageDeduction),
             reason: payload?.reason || "Automatic deposit refund upon equipment return & inspection",
             initiatedBy: userId,
+        },
+    });
+
+    // Immediately persist the Security Deposit Refund in database
+    await prisma.refund.upsert({
+        where: { stripeRefundId: refund.id },
+        create: {
+            stripeRefundId: refund.id,
+            paymentId: paidPayment.id,
+            rentalOrderId: order.id,
+            amount: refund.amount / 100,
+            currency: refund.currency,
+            reason: payload?.reason || "Automatic deposit refund upon equipment return & inspection",
+            refundType: "SECURITY_DEPOSIT",
+            status: refund.status || "succeeded",
+        },
+        update: {
+            status: refund.status || "succeeded",
+            amount: refund.amount / 100,
         },
     });
 

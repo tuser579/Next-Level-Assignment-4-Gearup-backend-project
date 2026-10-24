@@ -146,7 +146,7 @@ const cancelRentalOrder = async (orderId: string, userId: string, userRole: stri
     const paidPayment = updatedOrder.payments?.find((p) => p.stripePaymentIntentId);
     if (paidPayment && paidPayment.stripePaymentIntentId) {
         try {
-            await stripe.refunds.create({
+            const refund = await stripe.refunds.create({
                 payment_intent: paidPayment.stripePaymentIntentId,
                 reason: "requested_by_customer",
                 metadata: {
@@ -155,7 +155,38 @@ const cancelRentalOrder = async (orderId: string, userId: string, userRole: stri
                     cancelledBy: userId,
                 },
             });
-            console.log(`💸 [Auto Refund] Successfully issued Stripe refund for cancelled order ${updatedOrder.orderNumber}`);
+
+            // Immediately persist the Refund entity in the database
+            await prisma.refund.upsert({
+                where: { stripeRefundId: refund.id },
+                create: {
+                    stripeRefundId: refund.id,
+                    paymentId: paidPayment.id,
+                    rentalOrderId: orderId,
+                    amount: refund.amount / 100,
+                    currency: refund.currency,
+                    reason: refund.reason || "Full refund issued upon customer cancellation prior to pickup",
+                    refundType: "FULL",
+                    status: refund.status || "succeeded",
+                },
+                update: {
+                    status: refund.status || "succeeded",
+                    amount: refund.amount / 100,
+                },
+            });
+
+            // Immediately mark payment and order paymentStatus as REFUNDED
+            await prisma.payment.update({
+                where: { id: paidPayment.id },
+                data: { status: PaymentStatus.REFUNDED },
+            });
+
+            await prisma.rentalOrder.update({
+                where: { id: orderId },
+                data: { paymentStatus: PaymentStatus.REFUNDED },
+            });
+
+            console.log(`💸 [Auto Refund] Successfully issued Stripe refund and saved Refund entity for order ${updatedOrder.orderNumber}`);
         } catch (stripeErr: any) {
             console.error(`⚠️ [Auto Refund] Stripe refund failed for order ${updatedOrder.orderNumber}:`, stripeErr.message);
         }
