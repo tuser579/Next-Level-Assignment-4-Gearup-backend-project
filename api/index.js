@@ -1328,6 +1328,16 @@ var createRentalCheckoutSession = async (rentalOrderId, customerId) => {
     err.statusCode = httpStatus10.BAD_REQUEST;
     throw err;
   }
+  if (order.status === RentalOrderStatus.PLACED) {
+    const err = new Error("Provider cannot confirmed.");
+    err.statusCode = httpStatus10.BAD_REQUEST;
+    throw err;
+  }
+  if (order.status === RentalOrderStatus.PICKED_UP) {
+    const err = new Error("Cutomer already paid and picked this order.So, you cannot again paid");
+    err.statusCode = httpStatus10.BAD_REQUEST;
+    throw err;
+  }
   if (order.status === RentalOrderStatus.CANCELLED) {
     const err = new Error("Cannot pay for a cancelled rental order.");
     err.statusCode = httpStatus10.BAD_REQUEST;
