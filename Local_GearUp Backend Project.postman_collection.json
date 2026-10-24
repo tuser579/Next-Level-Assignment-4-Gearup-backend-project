@@ -1,4 +1,4 @@
-{
+﻿{
   "info": {
     "_postman_id": "04df6a35-0c18-4d11-b772-02c1081361bb",
     "name": "GearUp Backend Project",
@@ -17,25 +17,15 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"name\": \"Provider\",\r\n  \"email\": \"provider@gmail.com\",\r\n  \"password\": \"12345\",\r\n  \"role\": \"CUSTOMER\",\r\n  \"profileImage\": \"www.providerPhoto.com\",\r\n  \"phone\": \"+1-555-908-1122\",\r\n  \"address\": \"45 Trailhead Way, Aspen, CO\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\r\n  \"name\": \"John Trekkers\",\r\n  \"email\": \"john.customer@gmail.com\",\r\n  \"password\": \"password123\",\r\n  \"role\": \"CUSTOMER\",\r\n  \"profileImage\": \"https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=400\",\r\n  \"phone\": \"+880-1700-000004\",\r\n  \"address\": \"Sector 4, Uttara, Dhaka 1230, Bangladesh\"\r\n}",
+              "options": { "raw": { "language": "json" } }
             },
             "url": {
               "raw": "http://localhost:5000/api/auth/register",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "auth",
-                "register"
-              ]
+              "path": ["api", "auth", "register"]
             }
           },
           "response": []
@@ -47,25 +37,15 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  // admin  \r\n//   \"email\": \"jane@gmail.com\",\r\n//   \"password\": \"Password123\"\r\n  // customer\r\n  \"email\": \"tuser579@gmail.com\", \r\n  \"password\": \"12345\"\r\n  // provider\r\n//   \"email\": \"provider@gmail.com\",\r\n//   \"password\": \"12345\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\r\n  // admin\r\n//   \"email\": \"admin@gearup.com\",\r\n//   \"password\": \"admin123\"\r\n  // customer\r\n  \"email\": \"john.customer@gmail.com\",\r\n  \"password\": \"password123\"\r\n  // provider\r\n//   \"email\": \"summit.sports@gearup.com\",\r\n//   \"password\": \"password123\"\r\n}",
+              "options": { "raw": { "language": "json" } }
             },
             "url": {
               "raw": "http://localhost:5000/api/auth/login",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "auth",
-                "login"
-              ]
+              "path": ["api", "auth", "login"]
             }
           },
           "response": []
@@ -78,15 +58,9 @@
             "url": {
               "raw": "http://localhost:5000/api/auth/me",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "auth",
-                "me"
-              ]
+              "path": ["api", "auth", "me"]
             }
           },
           "response": []
@@ -99,15 +73,9 @@
             "url": {
               "raw": "http://localhost:5000/api/auth/refresh-token",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "auth",
-                "refresh-token"
-              ]
+              "path": ["api", "auth", "refresh-token"]
             }
           },
           "response": []
@@ -119,25 +87,15 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"name\": \"Tuser579\",\r\n  \"email\": \"tuser579@gmail.com\",\r\n  \"role\": \"CUSTOMER\",\r\n  \"phone\": \"+8801760049326\",\r\n  \"address\": \"Asulia, Saver, Dhaka\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\r\n  \"name\": \"John Trekkers\",\r\n  \"email\": \"john.customer@gmail.com\",\r\n  \"role\": \"CUSTOMER\",\r\n  \"phone\": \"+880-1700-000004\",\r\n  \"address\": \"Sector 4, Uttara, Dhaka 1230, Bangladesh\"\r\n}",
+              "options": { "raw": { "language": "json" } }
             },
             "url": {
               "raw": "http://localhost:5000/api/auth/profile",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "auth",
-                "profile"
-              ]
+              "path": ["api", "auth", "profile"]
             }
           },
           "response": []
@@ -149,25 +107,15 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"oldPassword\": \"Password123!\",\r\n  \"newPassword\": \"12345\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\r\n  \"oldPassword\": \"password123\",\r\n  \"newPassword\": \"newpassword456\"\r\n}",
+              "options": { "raw": { "language": "json" } }
             },
             "url": {
               "raw": "http://localhost:5000/api/auth/change-password",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "auth",
-                "change-password"
-              ]
+              "path": ["api", "auth", "change-password"]
             }
           },
           "response": []
@@ -183,38 +131,17 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5000/api/admin/users?role=CUSTOMER&status=ACTIVE&search=579&page=1&limit=10",
+              "raw": "http://localhost:5000/api/admin/users?role=CUSTOMER&status=ACTIVE&search=john&page=1&limit=10",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "admin",
-                "users"
-              ],
+              "path": ["api", "admin", "users"],
               "query": [
-                {
-                  "key": "role",
-                  "value": "CUSTOMER"
-                },
-                {
-                  "key": "status",
-                  "value": "ACTIVE"
-                },
-                {
-                  "key": "search",
-                  "value": "579"
-                },
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                }
+                { "key": "role", "value": "CUSTOMER" },
+                { "key": "status", "value": "ACTIVE" },
+                { "key": "search", "value": "john" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
               ]
             }
           },
@@ -228,25 +155,15 @@
             "body": {
               "mode": "raw",
               "raw": "{\r\n//   \"status\": \"BLOCKED\"\r\n   \"status\": \"ACTIVE\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "options": { "raw": { "language": "json" } }
             },
             "url": {
-              "raw": "http://localhost:5000/api/admin/users/79d2a629-17a3-4555-a680-c4e6e88c359c",
+              "raw": "http://localhost:5000/api/admin/users/:userId",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "admin",
-                "users",
-                "79d2a629-17a3-4555-a680-c4e6e88c359c"
-              ]
+              "path": ["api", "admin", "users", ":userId"],
+              "variable": [{ "key": "userId", "value": "" }]
             }
           },
           "response": []
@@ -259,28 +176,13 @@
             "url": {
               "raw": "http://localhost:5000/api/admin/rentals?status=CONFIRMED&page=1&limit=10",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "admin",
-                "rentals"
-              ],
+              "path": ["api", "admin", "rentals"],
               "query": [
-                {
-                  "key": "status",
-                  "value": "CONFIRMED"
-                },
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                }
+                { "key": "status", "value": "CONFIRMED" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
               ]
             }
           },
@@ -298,24 +200,15 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"name\": \"Camping & Hiking\",\r\n  \"slug\": \"camping-hiking\",\r\n  \"description\": \"Tents, backpacks, trekking poles, and sleeping bags for wilderness expeditions.\",\r\n  \"iconUrl\": \"https://img.icons8.com/color/96/camping-tent.png\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\r\n  \"name\": \"Camping & Hiking\",\r\n  \"slug\": \"camping-hiking\",\r\n  \"description\": \"Ultralight tents, weather-resistant sleeping bags, multi-fuel stoves, and trekking backpacks.\",\r\n  \"iconUrl\": \"https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=600\"\r\n}",
+              "options": { "raw": { "language": "json" } }
             },
             "url": {
               "raw": "http://localhost:5000/api/categories",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "categories"
-              ]
+              "path": ["api", "categories"]
             }
           },
           "response": []
@@ -328,14 +221,9 @@
             "url": {
               "raw": "http://localhost:5000/api/categories",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "categories"
-              ]
+              "path": ["api", "categories"]
             }
           },
           "response": []
@@ -346,17 +234,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5000/api/categories/aa6b3157-5b6f-4014-a9de-2b7218f99bf6",
+              "raw": "http://localhost:5000/api/categories/:categoryId",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "categories",
-                "aa6b3157-5b6f-4014-a9de-2b7218f99bf6"
-              ]
+              "path": ["api", "categories", ":categoryId"],
+              "variable": [{ "key": "categoryId", "value": "" }]
             }
           },
           "response": []
@@ -368,25 +251,16 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"description\": \"Updated: Premium four-season tents, ultra-light backpacks, and trekking equipment.\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\r\n  \"description\": \"Updated: Ultralight tents, weather-resistant sleeping bags, multi-fuel stoves, and trekking backpacks for Bandarban & Keokradong trails.\"\r\n}",
+              "options": { "raw": { "language": "json" } }
             },
             "url": {
-              "raw": "http://localhost:5000/api/categories/aa6b3157-5b6f-4014-a9de-2b7218f99bf6",
+              "raw": "http://localhost:5000/api/categories/:categoryId",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "categories",
-                "aa6b3157-5b6f-4014-a9de-2b7218f99bf6"
-              ]
+              "path": ["api", "categories", ":categoryId"],
+              "variable": [{ "key": "categoryId", "value": "" }]
             }
           },
           "response": []
@@ -397,17 +271,12 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "http://localhost:5000/api/categories/8fa7465c-ab24-4901-80ac-b023f76bbe5e",
+              "raw": "http://localhost:5000/api/categories/:categoryId",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "categories",
-                "8fa7465c-ab24-4901-80ac-b023f76bbe5e"
-              ]
+              "path": ["api", "categories", ":categoryId"],
+              "variable": [{ "key": "categoryId", "value": "" }]
             }
           },
           "response": []
@@ -425,50 +294,17 @@
             "url": {
               "raw": "http://localhost:5000/api/gear",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "gear"
-              ],
+              "path": ["api", "gear"],
               "query": [
-                {
-                  "key": "minPrice",
-                  "value": "10",
-                  "disabled": true
-                },
-                {
-                  "key": "maxPrice",
-                  "value": "50",
-                  "disabled": true
-                },
-                {
-                  "key": "condition",
-                  "value": "NEW",
-                  "disabled": true
-                },
-                {
-                  "key": "page",
-                  "value": "1",
-                  "disabled": true
-                },
-                {
-                  "key": "limit",
-                  "value": "10",
-                  "disabled": true
-                },
-                {
-                  "key": "sortBy",
-                  "value": "rentalPricePerDay",
-                  "disabled": true
-                },
-                {
-                  "key": "sortOrder",
-                  "value": "asc",
-                  "disabled": true
-                }
+                { "key": "minPrice", "value": "300", "disabled": true },
+                { "key": "maxPrice", "value": "1500", "disabled": true },
+                { "key": "condition", "value": "NEW", "disabled": true },
+                { "key": "page", "value": "1", "disabled": true },
+                { "key": "limit", "value": "10", "disabled": true },
+                { "key": "sortBy", "value": "rentalPricePerDay", "disabled": true },
+                { "key": "sortOrder", "value": "asc", "disabled": true }
               ]
             }
           },
@@ -480,17 +316,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5000/api/gear/c3230e26-04b5-4d50-9d33-ce14d9bddc9d",
+              "raw": "http://localhost:5000/api/gear/:gearId",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "gear",
-                "c3230e26-04b5-4d50-9d33-ce14d9bddc9d"
-              ]
+              "path": ["api", "gear", ":gearId"],
+              "variable": [{ "key": "gearId", "value": "" }]
             }
           },
           "response": []
@@ -507,25 +338,15 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"title\": \"Black Diamond Carbon Cork Trekking Poles\",\r\n  \"slug\": \"bd-carbon-cork-poles\",\r\n  \"description\": \"Premium 100% carbon fiber trekking poles with ergonomic cork grips.\",\r\n  \"brand\": \"Black Diamond\",\r\n  \"model\": \"Alpine Carbon Cork\",\r\n  \"condition\": \"NEW\",\r\n  \"rentalPricePerDay\": 14.0,\r\n  \"depositFee\": 35.0,\r\n  \"totalStock\": 10,\r\n  \"location\": \"Aspen, CO\",\r\n  \"images\": [\"https://images.unsplash.com/photo-1478131143081-80f7f84ca84d\"],\r\n  \"specifications\": { \"weight_grams\": 485, \"material\": \"100% Carbon Fiber\" },\r\n  \"categoryId\": \"aa6b3157-5b6f-4014-a9de-2b7218f99bf6\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\r\n  \"title\": \"MSR Hubba Hubba 3P Ultralight Backpacking Tent\",\r\n  \"slug\": \"msr-hubba-hubba-3p-tent\",\r\n  \"description\": \"Freestanding 3-season tent engineered with Easton Syclone composite poles and DuraShield waterproof coating. Ideal for Keokradong & Bandarban trails.\",\r\n  \"brand\": \"MSR\",\r\n  \"model\": \"Hubba Hubba 3P\",\r\n  \"condition\": \"EXCELLENT\",\r\n  \"rentalPricePerDay\": 500.0,\r\n  \"depositFee\": 1500.0,\r\n  \"totalStock\": 6,\r\n  \"location\": \"Dhaka, Bangladesh\",\r\n  \"images\": [\r\n    \"https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=800\",\r\n    \"https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?w=800\"\r\n  ],\r\n  \"specifications\": { \"capacity\": \"3 Person\", \"packedWeight\": \"1.72 kg\", \"floorArea\": \"3.67 sq m\", \"rainflyWaterproof\": \"3000mm\" },\r\n  \"categoryId\": \"\"\r\n}",
+              "options": { "raw": { "language": "json" } }
             },
             "url": {
               "raw": "http://localhost:5000/api/provider/gear",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "provider",
-                "gear"
-              ]
+              "path": ["api", "provider", "gear"]
             }
           },
           "response": []
@@ -537,26 +358,16 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"rentalPricePerDay\": 20.0,\r\n  \"depositFee\": 40.0,\r\n  \"totalStock\": 15,\r\n  \"availableStock\": 15\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\r\n  \"rentalPricePerDay\": 600.0,\r\n  \"depositFee\": 1800.0,\r\n  \"totalStock\": 8,\r\n  \"availableStock\": 7\r\n}",
+              "options": { "raw": { "language": "json" } }
             },
             "url": {
-              "raw": "http://localhost:5000/api/provider/gear/c3230e26-04b5-4d50-9d33-ce14d9bddc9d",
+              "raw": "http://localhost:5000/api/provider/gear/:gearId",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "provider",
-                "gear",
-                "c3230e26-04b5-4d50-9d33-ce14d9bddc9d"
-              ]
+              "path": ["api", "provider", "gear", ":gearId"],
+              "variable": [{ "key": "gearId", "value": "" }]
             }
           },
           "response": []
@@ -567,18 +378,12 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "http://localhost:5000/api/provider/gear/c3230e26-04b5-4d50-9d33-ce14d9bddc9d",
+              "raw": "http://localhost:5000/api/provider/gear/:gearId",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "provider",
-                "gear",
-                "c3230e26-04b5-4d50-9d33-ce14d9bddc9d"
-              ]
+              "path": ["api", "provider", "gear", ":gearId"],
+              "variable": [{ "key": "gearId", "value": "" }]
             }
           },
           "response": []
@@ -591,15 +396,9 @@
             "url": {
               "raw": "http://localhost:5000/api/provider/my-gear",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "provider",
-                "my-gear"
-              ]
+              "path": ["api", "provider", "my-gear"]
             }
           },
           "response": []
@@ -612,15 +411,9 @@
             "url": {
               "raw": "http://localhost:5000/api/provider/orders",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "provider",
-                "orders"
-              ]
+              "path": ["api", "provider", "orders"]
             }
           },
           "response": []
@@ -628,10 +421,20 @@
         {
           "name": "Update Order Status By Provider",
           "request": {
-            "method": "GET",
+            "method": "PATCH",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"status\": \"CONFIRMED\"\r\n}",
+              "options": { "raw": { "language": "json" } }
+            },
             "url": {
-              "raw": ""
+              "raw": "http://localhost:5000/api/provider/orders/:orderId",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "provider", "orders", ":orderId"],
+              "variable": [{ "key": "orderId", "value": "" }]
             }
           },
           "response": []
@@ -648,24 +451,15 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"startDate\": \"2026-08-10T10:00:00.000Z\",\r\n  \"endDate\": \"2026-08-14T18:00:00.000Z\",\r\n  \"items\": [\r\n    {\r\n      \"gearItemId\": \"c3230e26-04b5-4d50-9d33-ce14d9bddc9d\",\r\n      \"quantity\": 2\r\n    }\r\n  ],\r\n  \"notes\": \"Will pick up equipment directly at Aspen store.\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\r\n  \"startDate\": \"2026-06-01T09:00:00.000Z\",\r\n  \"endDate\": \"2026-06-04T18:00:00.000Z\",\r\n  \"items\": [\r\n    {\r\n      \"gearItemId\": \"\",\r\n      \"quantity\": 1\r\n    }\r\n  ],\r\n  \"notes\": \"Please pack with extra ground tarp.\"\r\n}",
+              "options": { "raw": { "language": "json" } }
             },
             "url": {
               "raw": "http://localhost:5000/api/rentals",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "rentals"
-              ]
+              "path": ["api", "rentals"]
             }
           },
           "response": []
@@ -678,14 +472,9 @@
             "url": {
               "raw": "http://localhost:5000/api/rentals",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "rentals"
-              ]
+              "path": ["api", "rentals"]
             }
           },
           "response": []
@@ -696,17 +485,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5000/api/rentals/6015ef15-2219-4b97-ade0-860922f006b8",
+              "raw": "http://localhost:5000/api/rentals/:rentalId",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "rentals",
-                "6015ef15-2219-4b97-ade0-860922f006b8"
-              ]
+              "path": ["api", "rentals", ":rentalId"],
+              "variable": [{ "key": "rentalId", "value": "" }]
             }
           },
           "response": []
@@ -717,17 +501,12 @@
             "method": "PATCH",
             "header": [],
             "url": {
-              "raw": "http://localhost:5000/api/rentals/6015ef15-2219-4b97-ade0-860922f006b8",
+              "raw": "http://localhost:5000/api/rentals/:rentalId",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "rentals",
-                "6015ef15-2219-4b97-ade0-860922f006b8"
-              ]
+              "path": ["api", "rentals", ":rentalId"],
+              "variable": [{ "key": "rentalId", "value": "" }]
             }
           },
           "response": []
@@ -744,25 +523,15 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"rentalOrderId\": \"61f3f9db-0fe6-47cc-83f4-433359eef2e7\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\r\n  \"rentalOrderId\": \"\"\r\n}",
+              "options": { "raw": { "language": "json" } }
             },
             "url": {
               "raw": "http://localhost:5000/api/payments/create",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "payments",
-                "create"
-              ]
+              "path": ["api", "payments", "create"]
             }
           },
           "response": []
@@ -774,25 +543,15 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"rentalOrderId\": \"61f3f9db-0fe6-47cc-83f4-433359eef2e7\",\r\n  \"reason\": \"Order cancelled due to unexpected equipment maintenance\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\r\n  \"rentalOrderId\": \"\",\r\n  \"reason\": \"Full refund issued upon customer cancellation prior to pickup\"\r\n}",
+              "options": { "raw": { "language": "json" } }
             },
             "url": {
               "raw": "http://localhost:5000/api/payments/refund",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "payments",
-                "refund"
-              ]
+              "path": ["api", "payments", "refund"]
             }
           },
           "response": []
@@ -804,26 +563,16 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"damageDeduction\": 0,\r\n  \"reason\": \"Equipment returned in perfect condition\"\r\n}\r\n",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\r\n  \"damageDeduction\": 0,\r\n  \"reason\": \"Automatic 100% deposit refund upon safe equipment inspection\"\r\n}\r\n",
+              "options": { "raw": { "language": "json" } }
             },
             "url": {
-              "raw": "http://localhost:5000/api/payments/auto-refund-deposit/61f3f9db-0fe6-47cc-83f4-433359eef2e7",
+              "raw": "http://localhost:5000/api/payments/auto-refund-deposit/:rentalOrderId",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "payments",
-                "auto-refund-deposit",
-                "61f3f9db-0fe6-47cc-83f4-433359eef2e7"
-              ]
+              "path": ["api", "payments", "auto-refund-deposit", ":rentalOrderId"],
+              "variable": [{ "key": "rentalOrderId", "value": "" }]
             }
           },
           "response": []
@@ -836,15 +585,9 @@
             "url": {
               "raw": "http://localhost:5000/api/payments/refunds",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "payments",
-                "refunds"
-              ]
+              "path": ["api", "payments", "refunds"]
             }
           },
           "response": []
@@ -855,18 +598,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5000/api/payments/refunds/",
+              "raw": "http://localhost:5000/api/payments/refunds/:refundId",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "payments",
-                "refunds",
-                ""
-              ]
+              "path": ["api", "payments", "refunds", ":refundId"],
+              "variable": [{ "key": "refundId", "value": "" }]
             }
           },
           "response": []
@@ -879,14 +616,9 @@
             "url": {
               "raw": "http://localhost:5000/api/payments",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "payments"
-              ]
+              "path": ["api", "payments"]
             }
           },
           "response": []
@@ -897,17 +629,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5000/api/payments/c9a4e855-33cd-4a30-853c-b93845d6e94c",
+              "raw": "http://localhost:5000/api/payments/:paymentId",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "payments",
-                "c9a4e855-33cd-4a30-853c-b93845d6e94c"
-              ]
+              "path": ["api", "payments", ":paymentId"],
+              "variable": [{ "key": "paymentId", "value": "" }]
             }
           },
           "response": []
@@ -924,24 +651,15 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"rentalOrderId\": \"6015ef15-2219-4b97-ade0-860922f006b8\",\r\n  \"gearItemId\": \"c3230e26-04b5-4d50-9d33-ce14d9bddc9d\",\r\n  \"rating\": 5,\r\n  \"comment\": \"Exceptional build quality, poles held up seamlessly across rocky climbs!\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\r\n  \"rentalOrderId\": \"\",\r\n  \"gearItemId\": \"\",\r\n  \"rating\": 5,\r\n  \"comment\": \"Tent was pristine, lightweight, and withstood heavy thunderstorm winds in Bandarban without any leak!\"\r\n}",
+              "options": { "raw": { "language": "json" } }
             },
             "url": {
               "raw": "http://localhost:5000/api/reviews",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "reviews"
-              ]
+              "path": ["api", "reviews"]
             }
           },
           "response": []
@@ -952,18 +670,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5000/api/reviews/gear/c3230e26-04b5-4d50-9d33-ce14d9bddc9d",
+              "raw": "http://localhost:5000/api/reviews/gear/:gearId",
               "protocol": "http",
-              "host": [
-                "localhost"
-              ],
+              "host": ["localhost"],
               "port": "5000",
-              "path": [
-                "api",
-                "reviews",
-                "gear",
-                "c3230e26-04b5-4d50-9d33-ce14d9bddc9d"
-              ]
+              "path": ["api", "reviews", "gear", ":gearId"],
+              "variable": [{ "key": "gearId", "value": "" }]
             }
           },
           "response": []
