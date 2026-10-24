@@ -1580,31 +1580,61 @@ var handleWebhook = async (payload, signature) => {
     case "refund.created":
     case "refund.updated": {
       const refund = event.data.object;
-      const intentId = refund.payment_intent;
-      if (intentId) {
-        const payment = await prisma.payment.findFirst({
-          where: { stripePaymentIntentId: intentId }
-        });
-        if (payment) {
-          await prisma.refund.upsert({
-            where: { stripeRefundId: refund.id },
-            create: {
-              stripeRefundId: refund.id,
-              paymentId: payment.id,
-              rentalOrderId: payment.rentalOrderId,
-              amount: refund.amount / 100,
-              currency: refund.currency,
-              reason: refund.metadata?.reason || refund.reason || "Refund processed",
-              refundType: refund.metadata?.refundType || "FULL",
-              status: refund.status || "succeeded"
-            },
-            update: {
-              status: refund.status || "succeeded",
-              amount: refund.amount / 100
-            }
-          });
-          console.log(`\u{1F4B3} [Webhook] Refund ${refund.id} persisted/synced via ${event.type}.`);
+      const intentId = typeof refund.payment_intent === "string" ? refund.payment_intent : refund.payment_intent?.id;
+      const rentalOrderId = refund.metadata?.rentalOrderId;
+      let payment = await prisma.payment.findFirst({
+        where: {
+          OR: [
+            ...intentId ? [{ stripePaymentIntentId: intentId }] : [],
+            ...rentalOrderId ? [{ rentalOrderId }] : []
+          ]
         }
+      });
+      if (!payment && refund.charge) {
+        try {
+          const chargeId = typeof refund.charge === "string" ? refund.charge : refund.charge.id;
+          const charge = await stripe.charges.retrieve(chargeId);
+          const pi = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id;
+          if (pi) {
+            payment = await prisma.payment.findFirst({
+              where: { stripePaymentIntentId: pi }
+            });
+          }
+        } catch (err) {
+          console.error("\u26A0\uFE0F [Webhook] Could not resolve payment from charge:", err.message);
+        }
+      }
+      if (payment) {
+        await prisma.refund.upsert({
+          where: { stripeRefundId: refund.id },
+          create: {
+            stripeRefundId: refund.id,
+            paymentId: payment.id,
+            rentalOrderId: payment.rentalOrderId,
+            amount: refund.amount / 100,
+            currency: refund.currency,
+            reason: refund.metadata?.reason || refund.reason || "Refund processed",
+            refundType: refund.metadata?.refundType || "FULL",
+            status: refund.status || "succeeded"
+          },
+          update: {
+            status: refund.status || "succeeded",
+            amount: refund.amount / 100
+          }
+        });
+        if (refund.amount / 100 >= payment.amount) {
+          await prisma.payment.update({
+            where: { id: payment.id },
+            data: { status: PaymentStatus.REFUNDED }
+          });
+          await prisma.rentalOrder.update({
+            where: { id: payment.rentalOrderId },
+            data: { paymentStatus: PaymentStatus.REFUNDED }
+          });
+        }
+        console.log(`\u{1F4B3} [Webhook] Refund ${refund.id} persisted/synced via ${event.type}.`);
+      } else {
+        console.warn(`\u26A0\uFE0F [Webhook] Could not find associated payment for refund ${refund.id} (intent: ${intentId}, order: ${rentalOrderId}).`);
       }
       break;
     }
